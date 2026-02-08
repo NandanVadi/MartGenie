@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Martgenie{% endblock %}
+
+{% block content %}
+<section class="role-selection">
+    <div class="container">
+        <h1 class="page-title">Welcome to Martgenie</h1>
+        <p class="page-subtitle">Select your portal to continue</p>
+
+        <div class="roles-grid">
+            <div class="role-card customer-card">
+                <div class="icon">🛍️</div>
+                <h2>Customer</h2>
+                <p>Browse products, manage cart, and place orders.</p>
+                <a href="{% url 'customer_login' %}" class="btn btn-primary">Enter Shop</a>
+            </div>
+
+            <!-- Admin Section -->
+            <div class="role-card admin-card">
+                <div class="icon">⚙️</div>
+                <h2>Admin</h2>
+                <p>Manage inventory, track sales, and view reports.</p>
+                <a href="{% url 'staff_login' %}" class="btn btn-secondary">Admin Dashboard</a>
+            </div>
+
+            <!-- Security Section -->
+            <div class="role-card security-card">
+                <div class="icon">🛡️</div>
+                <h2>Security</h2>
+                <p>Verify student purchases at the exit gate.</p>
+                <a href="{% url 'staff_login' %}" class="btn btn-outline">Exit Verification</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
