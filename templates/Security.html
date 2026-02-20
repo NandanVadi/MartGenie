@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guard Access - MartGenie</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-6 text-slate-800">
+  <div id="msg" class="glass-card rounded-2xl p-6 max-w-md text-center">
+    <h1 class="text-xl font-bold text-slate-900 mb-2">Checking Security Access</h1>
+    <p class="text-slate-600">Please wait...</p>
+  </div>
+
+  <script>
+    const msg = document.getElementById('msg');
+    if (localStorage.getItem('mart_genie_role') === 'guard') {
+      window.location.href = 'SecurityGuard.html';
+    } else {
+      msg.innerHTML = `
+        <h1 class="text-xl font-bold text-slate-900 mb-2">Access Denied</h1>
+        <p class="text-slate-600 mb-4">Security login is required to open this page.</p>
+        <a href="{% url 'login_selection' %}" class="inline-flex items-center justify-center rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 font-semibold">Go to Login</a>
+      `;
+    }
+  </script>
+</body>
+
+</html>

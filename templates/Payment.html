@@ -1,0 +1,254 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - MartGenie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        .payment-option.selected {
+            border-color: #0f766e;
+            background: rgba(236, 253, 245, 0.9);
+            box-shadow: 0 10px 20px -16px rgba(15, 118, 110, 0.45);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col text-slate-800 relative overflow-hidden">
+    <div class="pointer-events-none fixed -top-24 -left-20 w-80 h-80 rounded-full bg-teal-200/35 blur-3xl"></div>
+    <div class="pointer-events-none fixed -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl"></div>
+
+    <div id="main-container" class="flex-1 flex flex-col relative z-10"></div>
+
+    <script>
+        let cart = [];
+        let paymentMethod = 'upi';
+        let upiId = '';
+        let isProcessing = false;
+        let isSuccess = false;
+
+        const formatAmount = (value) => `Rs ${Number(value).toFixed(2)}`;
+
+        window.addEventListener('load', () => {
+            const savedCart = localStorage.getItem('mart_genie_cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+            }
+            render();
+        });
+
+        function render() {
+            const container = document.getElementById('main-container');
+
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const tax = subtotal * 0.18;
+            const total = subtotal + tax;
+
+            if (isSuccess) {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 fade-in text-center">
+                        <div class="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center mb-6 shadow-xl shadow-emerald-200 animate-[bounce_1s]">
+                            <i data-lucide="check-circle-2" class="w-14 h-14 text-white"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2 fade-in-up delay-100">Payment Successful</h2>
+                        <p class="text-slate-600 fade-in-up delay-200">Generating your secure exit pass...</p>
+                    </div>
+                `;
+            } else if (isProcessing) {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 fade-in text-center">
+                        <div class="relative">
+                            <div class="w-16 h-16 rounded-full border-4 border-slate-200 border-t-emerald-500 animate-spin"></div>
+                        </div>
+                        <h2 class="text-xl font-semibold text-slate-900 mt-6 mb-2">Processing Payment</h2>
+                        <p class="text-slate-600">Please wait while your payment is securely processed.</p>
+                    </div>
+                `;
+            } else if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center fade-in">
+                        <div class="w-20 h-20 rounded-full border border-slate-200 bg-white/80 flex items-center justify-center mb-5">
+                            <i data-lucide="shopping-bag" class="w-9 h-9 text-slate-400"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-900 mb-2">No items to pay for</h2>
+                        <p class="text-slate-600 mb-6">Your cart is empty. Add products before checkout.</p>
+                        <a href="{% url 'scanner' %}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 font-semibold shadow-md shadow-emerald-200">
+                            <i data-lucide="scan-line" class="w-4 h-4"></i>
+                            Go to Scanner
+                        </a>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="bg-white/85 backdrop-blur-md sticky top-0 z-20 border-b border-slate-200/80">
+                        <div class="max-w-3xl mx-auto flex items-center justify-between p-4">
+                            <a href="{% url 'cart' %}" class="text-slate-700 p-2 hover:bg-slate-100 rounded-full transition-colors" aria-label="Back to cart">
+                                <i data-lucide="arrow-left" class="h-5 w-5"></i>
+                            </a>
+                            <h1 class="font-bold text-lg text-slate-900">Payment</h1>
+                            <div class="w-9"></div>
+                        </div>
+                    </div>
+
+                    <div class="max-w-3xl w-full mx-auto px-4 py-4 md:py-6">
+                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 fade-in-up">
+                            <p class="text-emerald-100 text-sm uppercase tracking-wide">Total Amount</p>
+                            <p class="text-3xl md:text-4xl font-extrabold mt-1">${formatAmount(total)}</p>
+                            <p class="text-emerald-100 text-sm mt-2">Includes ${formatAmount(tax)} GST</p>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-auto max-w-3xl w-full mx-auto px-4 pb-4 fade-in-up delay-200">
+                        <h2 class="font-semibold text-slate-900 mb-3">Choose Payment Method</h2>
+                        <div class="space-y-3">
+                            <div onclick="setMethod('upi')" class="payment-option ${paymentMethod === 'upi' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                                    <i data-lucide="smartphone" class="w-6 h-6 text-slate-700"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-slate-900">UPI</h3>
+                                    <p class="text-xs text-slate-600">Google Pay, PhonePe, Paytm</p>
+                                </div>
+                            </div>
+
+                            <div onclick="setMethod('card')" class="payment-option ${paymentMethod === 'card' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                                    <i data-lucide="credit-card" class="w-6 h-6 text-slate-700"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-slate-900">Card</h3>
+                                    <p class="text-xs text-slate-600">Credit or Debit Card</p>
+                                </div>
+                            </div>
+
+                            <div onclick="setMethod('wallet')" class="payment-option ${paymentMethod === 'wallet' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                                    <i data-lucide="wallet" class="w-6 h-6 text-slate-700"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-slate-900">Wallet</h3>
+                                    <p class="text-xs text-slate-600">Paytm, Amazon Pay</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${paymentMethod === 'upi' ? `
+                            <div class="mt-4 fade-in">
+                                <input
+                                    type="text"
+                                    placeholder="Enter UPI ID (e.g. name@upi)"
+                                    value="${upiId}"
+                                    oninput="handleUpiInput(this)"
+                                    class="w-full h-12 px-4 rounded-xl border-2 border-slate-200 bg-white/90 focus:border-emerald-500 outline-none transition-colors"
+                                />
+                            </div>
+                        ` : ''}
+
+                        <div class="flex items-center gap-2 mt-6 text-slate-600">
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                            <span class="text-xs">256-bit SSL encrypted payment</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/90 backdrop-blur-md border-t border-slate-200 p-4">
+                        <div class="max-w-3xl mx-auto">
+                            <button
+                                onclick="handlePayment()"
+                                class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center disabled:opacity-60 disabled:shadow-none"
+                                ${paymentMethod === 'upi' && !upiId.trim() ? 'disabled' : ''}
+                            >
+                                Pay ${formatAmount(total)}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            lucide.createIcons();
+        }
+
+        window.setMethod = (m) => {
+            paymentMethod = m;
+            render();
+        };
+
+        window.handleUpiInput = (el) => {
+            upiId = el.value;
+            const btn = document.querySelector('button[onclick="handlePayment()"]');
+            if (!btn || paymentMethod !== 'upi') return;
+            if (upiId.trim()) {
+                btn.removeAttribute('disabled');
+            } else {
+                btn.setAttribute('disabled', 'true');
+            }
+        };
+
+        window.handlePayment = async () => {
+            if (paymentMethod === 'upi' && !upiId.trim()) return;
+
+            isProcessing = true;
+            render();
+
+            await new Promise(r => setTimeout(r, 2000));
+
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const tax = subtotal * 0.18;
+            const total = subtotal + tax;
+
+            const phone = localStorage.getItem('mart_genie_phone') || '9999999999';
+            const orderId = 'MG' + Date.now().toString().slice(-8);
+            const qrData = `MARTGENIE:${orderId}:${Date.now()}`;
+
+            const order = {
+                orderId,
+                total,
+                items: cart,
+                timestamp: new Date().toISOString(),
+                qrData,
+                customer_phone: phone,
+                created_date: new Date().toISOString(),
+                gate_pass_used: false,
+                payment_status: 'completed'
+            };
+
+            // Send to Backend
+            try {
+                const response = await fetch("{% url 'create_order' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(order)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create order');
+                }
+            } catch (error) {
+                console.error('Error creating order:', error);
+                // Continue for demo purposes, but ideally show error
+            }
+
+            localStorage.setItem('mart_genie_last_order', JSON.stringify(order));
+
+            const allOrders = JSON.parse(localStorage.getItem('mart_genie_all_orders') || '[]');
+            allOrders.unshift(order);
+            localStorage.setItem('mart_genie_all_orders', JSON.stringify(allOrders));
+
+            localStorage.removeItem('mart_genie_cart');
+
+            isSuccess = true;
+            render();
+
+            setTimeout(() => {
+                window.location.href = "{% url 'gatepass' %}";
+            }, 2000);
+        };
+    </script>
+</body>
+
+</html>

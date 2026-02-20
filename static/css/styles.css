@@ -1,0 +1,140 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap");
+
+:root {
+    --mg-primary: #0f766e;
+    --mg-secondary: #1d4ed8;
+    --mg-accent: #ea580c;
+    --mg-bg: #f8fafc;
+    --mg-surface: rgba(255, 255, 255, 0.8);
+    --mg-text: #0f172a;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    font-family: "Sora", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--mg-bg);
+    background-image:
+        radial-gradient(1200px 420px at 8% -10%, rgba(20, 184, 166, 0.18), transparent 70%),
+        radial-gradient(900px 420px at 102% 0%, rgba(37, 99, 235, 0.14), transparent 70%),
+        radial-gradient(700px 340px at 50% 102%, rgba(234, 88, 12, 0.1), transparent 70%);
+    color: var(--mg-text);
+    line-height: 1.45;
+}
+
+::selection {
+    background-color: rgba(20, 184, 166, 0.2);
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.4);
+    border-radius: 999px;
+    border: 2px solid rgba(248, 250, 252, 0.9);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(71, 85, 105, 0.55);
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.7);
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(20, 184, 166, 0.35);
+    outline-offset: 2px;
+}
+
+.glass-card {
+    background: var(--mg-surface);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 36px -24px rgba(15, 23, 42, 0.35);
+}
+
+.portal-card {
+    transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+}
+
+.portal-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 30px -20px rgba(2, 6, 23, 0.4);
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.7s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.fade-in {
+    animation: fadeIn 0.65s ease-out forwards;
+    opacity: 0;
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0);
+    }
+    50% {
+        transform: translateY(-5px) rotate(8deg);
+    }
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+
+@media (max-width: 640px) {
+    .portal-card:hover {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+

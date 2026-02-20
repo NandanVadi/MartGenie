@@ -1,0 +1,334 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Login - MartGenie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="min-h-screen flex flex-col text-slate-800 overflow-hidden relative">
+    <div class="fixed -top-20 -left-20 w-72 h-72 rounded-full bg-teal-200/40 blur-3xl"></div>
+    <div class="fixed -bottom-20 -right-20 w-80 h-80 rounded-full bg-blue-200/35 blur-3xl"></div>
+
+    <div class="flex-1 flex flex-col items-center justify-center px-5 py-10 relative z-10" id="main-container">
+
+        {% if not step or step == 'welcome' %}
+        <div class="w-full max-w-md rounded-3xl glass-card p-6 md:p-8 fade-in-up">
+            <div class="flex flex-col items-center gap-3 text-center mb-7">
+                <div class="relative">
+                    <div
+                        class="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-200">
+                        <i data-lucide="shopping-bag" class="text-white w-11 h-11"></i>
+                    </div>
+                    <div class="absolute -top-1 -right-1 bg-amber-400 rounded-full p-1.5 animate-float">
+                        <i data-lucide="sparkles" class="text-amber-700 w-4 h-4"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
+                    Mart<span class="text-emerald-600">Genie</span>
+                </h1>
+                <p class="text-slate-600 text-sm md:text-base leading-relaxed">
+                    Skip checkout queues. Scan products, pay digitally, and exit with a secure pass.
+                </p>
+            </div>
+
+            <div class="space-y-3">
+                <form action="{% url 'customer_login' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="start_shopping">
+                    <button type="submit"
+                        class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="phone" class="h-5 w-5"></i>
+                        Start Shopping
+                    </button>
+                </form>
+
+                <button type="button" onclick="openQrScanner()"
+                    class="w-full h-14 rounded-2xl border-2 border-slate-200 text-slate-700 text-base font-semibold flex items-center justify-center gap-2 hover:bg-white/70">
+                    <i data-lucide="scan-line" class="h-5 w-5"></i>
+                    Scan Store QR
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if step == 'store' %}
+        <div class="w-full max-w-md rounded-3xl glass-card p-6 md:p-8 fade-in-up">
+            <a href="?step=welcome"
+                class="text-slate-600 mb-6 inline-flex items-center gap-2 text-sm font-medium hover:text-slate-900">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back
+            </a>
+
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Enter your store ID</h2>
+            <p class="text-slate-600 mb-6">Enter store code to access items in this store.</p>
+
+            <form action="{% url 'customer_login' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="verify_store">
+
+                <div class="relative mb-3">
+                    <input type="text" name="store_code" required placeholder="MARTGENIE-STORE-001"
+                        class="w-full h-14 px-4 text-lg rounded-2xl border-2 border-teal-400/80 bg-white/90 focus:border-emerald-500 outline-none transition-colors" />
+                </div>
+
+                <p id="store-entry-status" class="text-xs mb-5 text-slate-500">You can also use Scan Store QR from
+                    previous screen.</p>
+
+                <button type="submit"
+                    class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center">
+                    Verify Store ID <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if step == 'phone' %}
+        <div class="w-full max-w-md rounded-3xl glass-card p-6 md:p-8 fade-in-up">
+            <a href="?step=store"
+                class="text-slate-600 mb-6 inline-flex items-center gap-2 text-sm font-medium hover:text-slate-900">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back
+            </a>
+
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Enter your mobile number</h2>
+            <p class="text-slate-600 mb-6">We will send a one-time password for verification.</p>
+
+            {% if messages %}
+            {% for message in messages %}
+            <p class="text-red-500 text-sm mb-4">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+
+            <form action="{% url 'customer_login' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="get_otp">
+
+                <div class="relative mb-6">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold">+91</span>
+                    <input type="tel" name="phone_number" inputmode="numeric" required pattern="[0-9]{10}"
+                        placeholder="9876543210"
+                        class="w-full h-14 pl-14 pr-4 text-lg rounded-2xl border-2 border-teal-400/80 bg-white/90 focus:border-emerald-500 outline-none transition-colors" />
+                </div>
+
+                <button type="submit"
+                    class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center">
+                    Get OTP <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if step == 'otp' %}
+        <div class="w-full max-w-md rounded-3xl glass-card p-6 md:p-8 fade-in-up">
+            <a href="?step=phone"
+                class="text-slate-600 mb-6 inline-flex items-center gap-2 text-sm font-medium hover:text-slate-900">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back
+            </a>
+
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Verify OTP</h2>
+            <!-- <p class="text-slate-600 mb-6">Enter the 6-digit code sent to your number.</p> -->
+
+            {% if messages %}
+            {% for message in messages %}
+            <p class="text-red-500 text-sm mb-4">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+
+            <form action="{% url 'verify_otp' %}" method="POST">
+                {% csrf_token %}
+
+                <div class="mb-6">
+                    <input type="text" name="otp" inputmode="numeric" maxlength="6" placeholder="0000" required
+                        class="w-full h-14 text-center text-2xl tracking-[0.45em] font-semibold rounded-2xl border-2 border-slate-200 bg-white/90 focus:border-emerald-500 outline-none transition-colors" />
+                </div>
+
+                <button type="submit"
+                    class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center">
+                    Verify and Enter Store <i data-lucide="arrow-right" class="ml-2 h-5 w-5"></i>
+                </button>
+            </form>
+
+            <button type="button" class="w-full text-center text-emerald-700 font-semibold mt-4 hover:text-emerald-800">
+                Resend OTP
+            </button>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <div class="text-center py-5 px-4 text-xs text-slate-500 relative z-10">
+        By continuing, you agree to our Terms and Privacy Policy.
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm p-4">
+        <div class="max-w-md mx-auto mt-10 rounded-2xl glass-card bg-white/95 overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+                <h3 class="font-semibold text-slate-900">Scan Store QR</h3>
+                <button type="button" onclick="closeQrScanner()" class="p-2 rounded-full hover:bg-slate-100"
+                    aria-label="Close scanner">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="p-4">
+                <div class="rounded-xl overflow-hidden bg-slate-900 aspect-square relative">
+                    <video id="qr-video" class="w-full h-full object-cover" autoplay muted playsinline></video>
+                    <div class="absolute inset-0 pointer-events-none">
+                        <div class="absolute inset-10 border-2 border-white/70 rounded-2xl"></div>
+                    </div>
+                </div>
+
+                <p id="qr-status" class="text-sm text-slate-600 mt-3 text-center">Point your camera at the store QR
+                    code.</p>
+
+                <div class="mt-4">
+                    <button type="button" onclick="closeQrScanner()"
+                        class="w-full h-11 rounded-xl border border-slate-300 font-semibold text-slate-700 hover:bg-slate-100">Close
+                        Scanner</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORE_QR_CODE = 'MARTGENIE-STORE-001';
+        let qrStream = null;
+        let qrDetector = null;
+        let qrScanActive = false;
+        let qrScanRaf = null;
+
+        function setQrStatus(text, isError = false) {
+            const status = document.getElementById('qr-status');
+            status.textContent = text;
+            status.className = `text-sm mt-3 text-center ${isError ? 'text-red-600' : 'text-slate-600'}`;
+        }
+
+        async function validateStoreQr(rawValue, source = 'scanner') {
+            const scannedValue = (rawValue || '').trim().toUpperCase();
+            if (!scannedValue) {
+                if (source === 'manual') alert('Please enter a valid store code.');
+                else setQrStatus('Please scan a valid QR code.', true);
+                return false;
+            }
+
+            if (scannedValue !== STORE_QR_CODE) {
+                if (source === 'manual') alert('Invalid store code.');
+                else setQrStatus('Invalid store QR. Try again.', true);
+                return false;
+            }
+
+            // Submit form logic
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'customer_login' %}";
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+
+            const action = document.createElement('input');
+            action.type = 'hidden';
+            action.name = 'action';
+            action.value = 'verify_store';
+            form.appendChild(action);
+
+            const code = document.createElement('input');
+            code.type = 'hidden';
+            code.name = 'store_code';
+            code.value = scannedValue;
+            form.appendChild(code);
+
+            document.body.appendChild(form);
+            form.submit();
+
+            closeQrScanner();
+            return true;
+        }
+
+        async function scanQrFrame() {
+            if (!qrScanActive || !qrDetector) return;
+            const video = document.getElementById('qr-video');
+
+            try {
+                const barcodes = await qrDetector.detect(video);
+                if (barcodes.length > 0) {
+                    const code = barcodes[0]?.rawValue || '';
+                    const isValid = await validateStoreQr(code, 'scanner');
+                    if (isValid) return;
+                }
+            } catch (error) {
+                setQrStatus('Unable to read QR right now. Keep camera steady.', true);
+            }
+
+            qrScanRaf = requestAnimationFrame(scanQrFrame);
+        }
+
+        window.openQrScanner = async () => {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            modal.classList.remove('hidden');
+            setQrStatus('Requesting camera access...');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setQrStatus('Camera not supported on this device.', true);
+                return;
+            }
+
+            try {
+                qrStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+
+                video.srcObject = qrStream;
+                await video.play();
+
+                if (!('BarcodeDetector' in window)) {
+                    setQrStatus('QR auto-scan not supported in this browser.', true);
+                    return;
+                }
+
+                qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+                qrScanActive = true;
+                setQrStatus('Camera active. Point at store QR code.');
+                scanQrFrame();
+            } catch (error) {
+                setQrStatus('Camera access denied. Allow camera permission.', true);
+            }
+        };
+
+        window.closeQrScanner = () => {
+            qrScanActive = false;
+            if (qrScanRaf) {
+                cancelAnimationFrame(qrScanRaf);
+                qrScanRaf = null;
+            }
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+
+            const video = document.getElementById('qr-video');
+            video.srcObject = null;
+
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('hidden');
+            setQrStatus('Point your camera at the store QR code.');
+        };
+
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

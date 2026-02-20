@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - MartGenie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="{% static 'js/mockData.js' %}"></script>
+</head>
+
+<body class="min-h-screen flex flex-col relative overflow-hidden text-white">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black"></div>
+    <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-teal-500/15 blur-3xl"></div>
+    <div class="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-blue-500/15 blur-3xl"></div>
+
+    <div class="relative z-10 max-w-md w-full mx-auto min-h-screen flex flex-col">
+        <div class="flex items-center justify-between p-4">
+            <a href="{% url 'customer_profile' %}"
+                class="text-white hover:bg-white/10 p-2 rounded-full transition-colors" aria-label="Close scanner">
+                <i data-lucide="x" class="h-6 w-6"></i>
+            </a>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleFlash()" class="p-2 rounded-full hover:bg-white/10 transition-colors"
+                    id="flash-btn" aria-label="Toggle flash">
+                    <i data-lucide="flashlight" class="h-5 w-5"></i>
+                </button>
+                <button onclick="toggleSound()" class="p-2 rounded-full hover:bg-white/10 transition-colors"
+                    id="sound-btn" aria-label="Toggle sound">
+                    <i data-lucide="volume-2" class="h-5 w-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="px-6 pb-2">
+            <p class="text-xs text-white/75 text-center" id="store-label">Store: -</p>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center px-6">
+            <div class="relative w-72 h-72 border-2 border-white/30 rounded-3xl flex items-center justify-center overflow-hidden transition-all duration-300"
+                id="scan-box">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_rgba(52,211,153,0.5)] animate-[scan_2s_linear_infinite]"
+                    id="scan-line"></div>
+
+                <div
+                    class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-2xl -mt-0.5 -ml-0.5">
+                </div>
+                <div
+                    class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-2xl -mt-0.5 -mr-0.5">
+                </div>
+                <div
+                    class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-2xl -mb-0.5 -ml-0.5">
+                </div>
+                <div
+                    class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-2xl -mb-0.5 -mr-0.5">
+                </div>
+
+                <i data-lucide="scan-line" class="text-white/20 w-12 h-12"></i>
+            </div>
+
+            <div id="reader" class="rounded-3xl overflow-hidden hidden w-72 h-72 border-2 border-emerald-500 bg-black">
+            </div>
+
+            <p class="text-white/75 text-sm mt-6 text-center">Position the barcode within the frame</p>
+
+            <button onclick="simulateScan()" id="scan-btn"
+                class="mt-6 px-6 py-3 rounded-xl border border-white/30 text-white hover:bg-white/10 transition-all disabled:opacity-50">
+                Tap to simulate scan
+            </button>
+            <button onclick="startScanner()" id="start-camera-btn"
+                class="mt-6 px-6 py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold transition-all shadow-lg shadow-emerald-500/30">
+                <i data-lucide="camera" class="inline w-4 h-4 mr-2"></i> Start Camera
+            </button>
+            <button onclick="stopScanner()" id="stop-camera-btn"
+                class="mt-6 px-6 py-3 rounded-xl bg-rose-600 text-white hover:bg-rose-700 font-bold transition-all hidden">
+                <i data-lucide="x" class="inline w-4 h-4 mr-2"></i> Stop Camera
+            </button>
+        </div>
+
+        <div id="scan-popup"
+            class="absolute bottom-32 left-4 right-4 z-20 transition-all duration-500 transform translate-y-[150%] opacity-0">
+            <div class="bg-emerald-500 rounded-2xl p-4 flex items-center gap-3 shadow-xl">
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                    <i data-lucide="check" class="w-6 h-6 text-emerald-500"></i>
+                </div>
+                <div class="flex-1 text-white">
+                    <p class="font-semibold" id="popup-name">Product Name</p>
+                    <p class="text-emerald-100 text-sm" id="popup-price">Rs 0.00 added</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4">
+            <a href="{% url 'cart' %}">
+                <div
+                    class="bg-emerald-500 rounded-2xl p-4 flex items-center justify-between shadow-xl shadow-emerald-500/30 active:scale-95 transition-transform">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <i data-lucide="shopping-cart" class="w-6 h-6 text-white"></i>
+                            <span id="cart-badge"
+                                class="absolute -top-2 -right-2 w-5 h-5 bg-white text-emerald-700 text-xs font-bold rounded-full flex items-center justify-center hidden">0</span>
+                        </div>
+                        <span class="text-white font-semibold">View Cart</span>
+                    </div>
+                    <span class="text-white font-bold text-lg" id="cart-total">Rs 0.00</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="pb-6 px-6">
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 border border-white/10">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/25 flex items-center justify-center">
+                    <span class="text-emerald-300 text-sm font-bold">i</span>
+                </div>
+                <p class="text-white/80 text-xs flex-1">Scan each product barcode. Items are automatically added to your
+                    cart.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="debug-panel"
+        class="hidden absolute top-0 left-0 right-0 bg-black/80 text-green-400 p-4 font-mono text-xs z-50 h-32 overflow-y-auto">
+        <p>Debug Log:</p>
+    </div>
+
+    <style>
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+    </style>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script>
+        let cart = [];
+        let soundEnabled = true;
+        let flashEnabled = false;
+        let products = [];
+        let detected = false;
+        let html5QrCode = null;
+
+        // Use Django context variable
+        const storeCode = "{{ store_code }}";
+
+        window.addEventListener('load', async () => {
+            lucide.createIcons();
+            document.getElementById('store-label').textContent = `Store: ${storeCode}`;
+
+            const btn = document.getElementById('scan-btn');
+            const camBtn = document.getElementById('start-camera-btn');
+
+            btn.textContent = 'Loading products...';
+            btn.disabled = true;
+            if (camBtn) camBtn.disabled = true;
+
+            logDebug(`Connecting to store: ${storeCode}`);
+
+            // Fetch products from real API with cache busting
+            try {
+                const response = await fetch(`/products/api/catalog/${storeCode}/?t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                products = await response.json();
+                console.log('Loaded products:', products);
+                logDebug(`Loaded ${products.length} products.`);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                alert('Failed to load store products. Please try again.');
+                return;
+            }
+
+            if (products.length === 0) {
+                console.warn('No products found in inventory.');
+            }
+
+            btn.textContent = 'Tap to simulate scan';
+            btn.disabled = false;
+            if (camBtn) camBtn.disabled = false;
+
+            const savedCart = localStorage.getItem('mart_genie_cart');
+            if (savedCart) {
+                cart = JSON.parse(savedCart);
+                updateCartUI();
+            }
+        });
+
+        window.toggleFlash = () => {
+            flashEnabled = !flashEnabled;
+            // Native flash toggle with html5-qrcode is complex, usually needs applyConstraints
+            // For now, visual toggle
+            const btn = document.getElementById('flash-btn');
+            if (flashEnabled) btn.classList.add('text-yellow-300');
+            else btn.classList.remove('text-yellow-300');
+
+            if (html5QrCode && flashEnabled) {
+                html5QrCode.applyVideoConstraints({ advanced: [{ torch: true }] }).catch(err => console.log(err));
+            } else if (html5QrCode) {
+                html5QrCode.applyVideoConstraints({ advanced: [{ torch: false }] }).catch(err => console.log(err));
+            }
+        };
+
+        window.toggleSound = () => {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            btn.innerHTML = soundEnabled
+                ? '<i data-lucide="volume-2" class="h-5 w-5"></i>'
+                : '<i data-lucide="volume-x" class="h-5 w-5"></i>';
+            lucide.createIcons();
+        };
+
+        window.simulateScan = () => {
+            if (products.length === 0 || detected) return;
+
+            detected = true;
+            const randomProduct = products[Math.floor(Math.random() * products.length)];
+            processProduct(randomProduct);
+
+            // Visual feedback for simulation
+            const scanBox = document.getElementById('scan-box');
+            if (scanBox) {
+                scanBox.classList.add('border-emerald-400', 'bg-emerald-500/10');
+                scanBox.classList.remove('border-white/30');
+                setTimeout(() => {
+                    detected = false;
+                    scanBox.classList.remove('border-emerald-400', 'bg-emerald-500/10');
+                    scanBox.classList.add('border-white/30');
+                }, 2000);
+            } else {
+                setTimeout(() => { detected = false; }, 2000);
+            }
+        };
+
+        function processProduct(product) {
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1, storeCode });
+            }
+
+            localStorage.setItem('mart_genie_cart', JSON.stringify(cart));
+            updateCartUI();
+            showPopup(product);
+        }
+
+        function logDebug(msg) {
+            const panel = document.getElementById('debug-panel');
+            const p = document.createElement('p');
+            p.textContent = `> ${msg}`;
+            panel.insertBefore(p, panel.firstChild);
+            console.log(msg);
+        }
+
+        function onScanSuccess(decodedText) {
+            if (detected) return;
+
+            logDebug(`Scanned: ${decodedText}`);
+
+            // Find product by barcode
+            const product = products.find(p => p.barcode === decodedText);
+
+            if (product) {
+                detected = true;
+                logDebug(`Found: ${product.name}`);
+                if (soundEnabled) {
+                    // Simple beep could be added here
+                }
+                processProduct(product);
+
+                // Pause scanning briefly to avoid duplicate reads
+                setTimeout(() => {
+                    detected = false;
+                }, 2000);
+            } else {
+                logDebug(`Product NOT found for: ${decodedText}`);
+                showError(`Product not found: ${decodedText}`);
+                // Optional: detected = true; setTimeout(() => detected = false, 2000); to avoid spam
+            }
+        }
+
+        function showError(msg) {
+            const popup = document.getElementById('scan-popup');
+            // Temporarily style as error
+            popup.className = "absolute bottom-32 left-4 right-4 z-20 transition-all duration-500 transform bg-red-500 rounded-2xl p-4 flex items-center gap-3 shadow-xl";
+            popup.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                </div>
+                <div class="flex-1 text-white">
+                    <p class="font-semibold">Error</p>
+                    <p class="text-red-100 text-sm">${msg}</p>
+                </div>
+             `;
+
+            popup.classList.remove('translate-y-[150%]', 'opacity-0');
+            setTimeout(() => {
+                popup.classList.add('translate-y-[150%]', 'opacity-0');
+                // Reset style after hide
+                setTimeout(() => {
+                    popup.className = "absolute bottom-32 left-4 right-4 z-20 transition-all duration-500 transform translate-y-[150%] opacity-0";
+                    popup.innerHTML = `
+                        <div class="bg-emerald-500 rounded-2xl p-4 flex items-center gap-3 shadow-xl">
+                            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+                                <i data-lucide="check" class="w-6 h-6 text-emerald-500"></i>
+                            </div>
+                            <div class="flex-1 text-white">
+                                <p class="font-semibold" id="popup-name">Product Name</p>
+                                <p class="text-emerald-100 text-sm" id="popup-price">Rs 0.00 added</p>
+                            </div>
+                        </div>
+                     `;
+                }, 500);
+            }, 3000);
+        }
+
+        window.startScanner = function () {
+            document.getElementById('scan-box').classList.add('hidden');
+            document.getElementById('reader').classList.remove('hidden');
+            document.getElementById('start-camera-btn').classList.add('hidden');
+            document.getElementById('stop-camera-btn').classList.remove('hidden');
+            document.getElementById('scan-btn').classList.add('hidden'); // Hide simulation button
+
+            html5QrCode = new Html5Qrcode("reader");
+
+            // Optimization: Limit formats to common product barcodes for speed
+            const config = {
+                fps: 35, // User requested 35 FPS
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.QR_CODE
+                ],
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                },
+                videoConstraints: {
+                    focusMode: "continuous",
+                    facingMode: "environment",
+                    width: { min: 640, ideal: 1280, max: 1920 },
+                    height: { min: 480, ideal: 720, max: 1080 }
+                }
+            };
+
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => {
+                    console.error("Camera start failed", err);
+                    alert("Could not start camera. " + err);
+                    stopScanner();
+                });
+        };
+
+        window.stopScanner = function () {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                    resetUI();
+                }).catch(err => {
+                    console.error("Failed to stop", err);
+                    resetUI();
+                });
+            } else {
+                resetUI();
+            }
+        };
+
+        function resetUI() {
+            document.getElementById('scan-box').classList.remove('hidden');
+            document.getElementById('reader').classList.add('hidden');
+            document.getElementById('start-camera-btn').classList.remove('hidden');
+            document.getElementById('stop-camera-btn').classList.add('hidden');
+            document.getElementById('scan-btn').classList.remove('hidden');
+        }
+
+        function updateCartUI() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            const badge = document.getElementById('cart-badge');
+            if (count > 0) {
+                badge.classList.remove('hidden');
+                badge.textContent = count;
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            document.getElementById('cart-total').textContent = 'Rs ' + total.toFixed(2);
+        }
+
+        function showPopup(product) {
+            const popup = document.getElementById('scan-popup');
+            document.getElementById('popup-name').textContent = product.name;
+            document.getElementById('popup-price').textContent = 'Rs ' + product.price.toFixed(2) + ' added';
+
+            popup.classList.remove('translate-y-[150%]', 'opacity-0');
+            setTimeout(() => {
+                popup.classList.add('translate-y-[150%]', 'opacity-0');
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

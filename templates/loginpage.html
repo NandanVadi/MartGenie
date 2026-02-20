@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>MartGenie Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="min-h-screen flex items-center justify-center px-4 py-10 text-slate-800 relative overflow-hidden">
+  <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-teal-200/40 blur-3xl"></div>
+  <div class="absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/40 blur-3xl"></div>
+  <div
+    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] rounded-full bg-orange-100/25 blur-3xl">
+  </div>
+
+  <div class="w-full max-w-md p-7 md:p-8 rounded-3xl glass-card relative z-10 fade-in-up">
+    <div class="text-center mb-6">
+      <div
+        class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200 mb-4">
+        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+      </div>
+      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+        Mart<span class="text-emerald-600">Genie</span>
+      </h1>
+      <p class="text-slate-600 mt-2 text-sm">Admin and Security access portal</p>
+    </div>
+
+    <div class="mb-5">
+      <h2 class="text-xl font-bold text-slate-800 mb-1">Login</h2>
+      <p class="text-slate-500 text-sm">Enter your credentials to access the portal.</p>
+    </div>
+
+    <form id="login-form" class="space-y-3" action="{% url 'staff_login' %}" method="POST">
+      {% csrf_token %}
+      {% if error %}
+      <p class="text-red-500 text-sm text-center">{{ error }}</p>
+      {% endif %}
+      <div>
+        <label for="loginId" class="text-sm font-semibold text-slate-700">User ID</label>
+        <div class="relative mt-1">
+          <i data-lucide="user-round" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+          <input id="loginId" name="username" type="text" placeholder="Enter Admin ID or Guard ID"
+            class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none"
+            required />
+        </div>
+      </div>
+
+      <div>
+        <label for="loginPassword" class="text-sm font-semibold text-slate-700">Password</label>
+        <div class="relative mt-1">
+          <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
+          <input id="loginPassword" name="password" type="password" placeholder="Enter password"
+            class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none"
+            required />
+        </div>
+      </div>
+
+      <button type="submit"
+        class="w-full h-12 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition shadow-lg shadow-emerald-200">Continue</button>
+    </form>
+
+    <div class="mt-6 grid grid-cols-2 gap-3 text-sm">
+      <div class="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
+        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Admin</p>
+        <p class="font-bold text-slate-800">Use Admin Panel</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
+        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Security</p>
+        <p class="font-bold text-slate-800">Contact Admin</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+</body>
+
+</html>
