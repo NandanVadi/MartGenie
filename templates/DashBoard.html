@@ -140,8 +140,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-slate-500 text-sm font-medium">Gate Pass</p>
-                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ gate_pass_used_count }}/{{
-                            order_count }}</h3>
+                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ gate_pass_used_count }}/{{ order_count }}</h3>
                     </div>
                     <div class="p-2 bg-amber-50 rounded-lg">
                         <i data-lucide="check-square" class="w-5 h-5 text-amber-700"></i>
@@ -168,14 +167,19 @@
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="font-semibold text-slate-900">Sales Overview</h3>
                         </div>
-                        <div class="h-64 w-full"></div>
-                        <canvas id="salesChart"></canvas>
+                        <div class="relative h-64 w-full">
+                            <canvas id="salesChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
+                {{ chart_labels|json_script:"chartLabelsData" }}
+                {{ chart_values|json_script:"chartValuesData" }}
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
+                        const labelsData = JSON.parse(document.getElementById('chartLabelsData').textContent);
+                        const valuesData = JSON.parse(document.getElementById('chartValuesData').textContent);
                         const ctx = document.getElementById('salesChart').getContext('2d');
 
                         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -185,21 +189,21 @@
                         new Chart(ctx, {
                             type: 'line',
                             data: {
-                                labels: {{ chart_labels| safe }},
-                        datasets: [{
-                            label: 'Revenue (Rs)',
-                            data: {{ chart_values| safe }},
-                        borderColor: '#10b981', // Emerald-500
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#10b981',
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4
-                                    }]
-                                },
+                                labels: labelsData,
+                                datasets: [{
+                                    label: 'Revenue (Rs)',
+                                    data: valuesData,
+                                    borderColor: '#10b981', // Emerald-500
+                                    backgroundColor: gradient,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#fff',
+                                    pointBorderColor: '#10b981',
+                                    pointRadius: 4,
+                                    pointHoverRadius: 6,
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
                         options: {
                         responsive: true,
                         maintainAspectRatio: false,

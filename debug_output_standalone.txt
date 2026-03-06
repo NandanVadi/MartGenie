@@ -1,3 +1,0 @@
-Total products: 2
-Barcode: '8906078722962' Len: 13
-Barcode: '8901491101813' Len: 13
