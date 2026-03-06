@@ -282,10 +282,12 @@
         function startScanner() {
             document.getElementById('start-scan-btn').classList.add('hidden');
             document.getElementById('stop-scan-btn').classList.remove('hidden');
-            html5QrCode = new Html5Qrcode("reader");
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
 
             const config = {
-                fps: 25,
+                fps: 10,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
                 formatsToSupport: [
@@ -295,13 +297,18 @@
                     Html5QrcodeSupportedFormats.UPC_E,
                     Html5QrcodeSupportedFormats.CODE_128,
                     Html5QrcodeSupportedFormats.QR_CODE
-                ],
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
+                ]
             };
 
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            ).catch(err => {
+                console.error("Error starting camera", err);
+                alert("Could not start camera. Please ensure you have granted camera permissions securely (HTTPS/Localhost).");
+                stopScanner();
+            });
         }
 
         function stopScanner() {
