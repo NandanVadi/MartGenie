@@ -335,13 +335,14 @@
             document.getElementById('reader').classList.remove('hidden');
             document.getElementById('start-camera-btn').classList.add('hidden');
             document.getElementById('stop-camera-btn').classList.remove('hidden');
-            document.getElementById('scan-btn').classList.add('hidden'); // Hide simulation button
+            document.getElementById('scan-btn').classList.add('hidden');
 
-            html5QrCode = new Html5Qrcode("reader");
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
 
-            // Optimization: Limit formats to common product barcodes for speed
             const config = {
-                fps: 35, // User requested 35 FPS
+                fps: 10,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
                 formatsToSupport: [
@@ -351,24 +352,18 @@
                     Html5QrcodeSupportedFormats.UPC_E,
                     Html5QrcodeSupportedFormats.CODE_128,
                     Html5QrcodeSupportedFormats.QR_CODE
-                ],
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                },
-                videoConstraints: {
-                    focusMode: "continuous",
-                    facingMode: "environment",
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
-                }
+                ]
             };
 
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-                .catch(err => {
-                    console.error("Camera start failed", err);
-                    alert("Could not start camera. " + err);
-                    stopScanner();
-                });
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            ).catch(err => {
+                console.error("Camera start failed", err);
+                alert("Could not start camera. Please ensure you have granted camera permissions securely (HTTPS/Localhost).");
+                stopScanner();
+            });
         };
 
         window.stopScanner = function () {
