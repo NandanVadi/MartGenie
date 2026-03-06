@@ -2,10 +2,17 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 def home(request):
+    """
+    Renders the landing page for the MartGenie application.
+    """
     return render(request, 'Home.html')
 
 @login_required
 def dashboard(request):
+    """
+    Renders the admin dashboard with sales statistics, charts, and recent orders.
+    Filters data based on the requested time period.
+    """
     # Imports inside view to avoid circular imports if any, though top-level is better if safe
     from billing.models import Order, OrderItem, GatePassLog
     from products.models import Product
