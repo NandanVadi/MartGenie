@@ -68,6 +68,13 @@
             <h2 class="text-2xl font-bold text-slate-900 mb-2">Enter your store ID</h2>
             <p class="text-slate-600 mb-6">Enter store code to access items in this store.</p>
 
+            {% if messages %}
+            {% for message in messages %}
+            <p class="text-red-500 text-sm mb-4">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+
+
             <form action="{% url 'customer_login' %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="verify_store">

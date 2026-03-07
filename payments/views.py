@@ -28,6 +28,8 @@ def create_order(request):
             store = None
             if store_code:
                 store = Store.objects.filter(store_code=store_code).first()
+            if not store:
+                store = Store.objects.first() # Fallback to first available store for demo
 
             with transaction.atomic():
                 # Create Order

@@ -26,12 +26,15 @@
                         class="text-emerald-600">Genie</span></span>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{% url 'inventory_manager' %}">
-                    <button
-                        class="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-emerald-200">
-                        <i data-lucide="scan-barcode" class="h-4 w-4"></i>
-                        Inventory Manager
-                    </button>
+                <a href="{% url 'inventory_manager' %}"
+                    class="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-emerald-200">
+                    <i data-lucide="scan-barcode" class="h-4 w-4"></i>
+                    Inventory Manager
+                </a>
+                <a href="{% url 'logout' %}"
+                    class="bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors">
+                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                    Logout
                 </a>
             </div>
         </div>
@@ -141,7 +144,8 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-slate-500 text-sm font-medium">Gate Pass</p>
-                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ gate_pass_used_count }}/{{ order_count }}</h3>
+                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ gate_pass_used_count }}/{{ order_count }}
+                        </h3>
                     </div>
                     <div class="p-2 bg-amber-50 rounded-lg">
                         <i data-lucide="check-square" class="w-5 h-5 text-amber-700"></i>
@@ -205,49 +209,49 @@
                                     tension: 0.4
                                 }]
                             },
-                        options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                callbacks: {
-                                    label: function (context) {
-                                        return 'Rs ' + context.parsed.y.toFixed(2);
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    tooltip: {
+                                        mode: 'index',
+                                        intersect: false,
+                                        callbacks: {
+                                            label: function (context) {
+                                                return 'Rs ' + context.parsed.y.toFixed(2);
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: {
+                                            color: '#f1f5f9'
+                                        },
+                                        ticks: {
+                                            font: {
+                                                size: 10
+                                            }
+                                        }
+                                    },
+                                    x: {
+                                        grid: {
+                                            display: false
+                                        },
+                                        ticks: {
+                                            font: {
+                                                size: 10
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#f1f5f9'
-                                },
-                                ticks: {
-                                    font: {
-                                        size: 10
-                                    }
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    font: {
-                                        size: 10
-                                    }
-                                }
-                            }
-                        }
-                    }
-                            });
                         });
+                    });
                 </script>
             </div>
 

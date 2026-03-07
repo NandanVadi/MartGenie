@@ -27,10 +27,16 @@
                 <p class="text-xs text-slate-500">{{ request.user.username }}</p>
             </div>
         </div>
-        <a href="{% url 'scanner' %}"
-            class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-md shadow-emerald-200">
-            <i data-lucide="scan-line" class="w-4 h-4"></i> Scan
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'logout' %}"
+                class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition shadow-sm">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+            </a>
+            <a href="{% url 'scanner' %}"
+                class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition shadow-md shadow-emerald-200">
+                <i data-lucide="scan-line" class="w-4 h-4"></i> Scan
+            </a>
+        </div>
     </header>
 
     <!-- Content -->

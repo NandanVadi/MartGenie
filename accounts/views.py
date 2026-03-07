@@ -1,13 +1,15 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from .models import CustomUser
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 import random
 
 def login_selection(request):
     return render(request, 'loginpage.html')
 
+@csrf_exempt
 def customer_login(request):
     step = request.GET.get('step', 'welcome')
     
@@ -75,6 +77,9 @@ def customer_profile(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'accounts/profile.html', {'orders': orders})
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 def staff_login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -97,4 +102,8 @@ def staff_login(request):
             return render(request, 'loginpage.html', {'error': 'Invalid Credentials'})
             
     return render(request, 'loginpage.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login_selection')
 

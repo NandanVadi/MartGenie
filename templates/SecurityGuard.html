@@ -26,9 +26,16 @@
                 <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Mart<span
                         class="text-emerald-600">Genie</span></h1>
             </div>
-            <div class="text-right">
-                <p class="text-sm text-slate-500">Security Console</p>
-                <p class="font-semibold text-slate-900">Exit Gate</p>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-sm text-slate-500">Security Console</p>
+                    <p class="font-semibold text-slate-900">Exit Gate</p>
+                </div>
+                <a href="{% url 'logout' %}"
+                    class="bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors">
+                    <i data-lucide="log-out" class="h-4 w-4"></i>
+                    Logout
+                </a>
             </div>
         </div>
     </div>
@@ -59,8 +66,8 @@
                 html5QrCode = new Html5Qrcode("reader");
             }
 
-            const config = { 
-                fps: 10, 
+            const config = {
+                fps: 10,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
                 formatsToSupport: [
@@ -74,8 +81,8 @@
             };
 
             html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
+                { facingMode: "environment" },
+                config,
                 onScanSuccess
             ).catch(err => {
                 console.error("Error starting camera", err);
