@@ -151,6 +151,13 @@
             <form action="{% url 'verify_otp' %}" method="POST">
                 {% csrf_token %}
 
+                {% if debug_otp %}
+                <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                    <p class="text-xs text-amber-600 font-semibold uppercase tracking-wide mb-1">Dev Mode — Your OTP</p>
+                    <p class="text-2xl font-bold text-amber-700 tracking-widest">{{ debug_otp }}</p>
+                </div>
+                {% endif %}
+
                 <div class="mb-6">
                     <input type="text" name="otp" inputmode="numeric" maxlength="6" placeholder="0000" required
                         class="w-full h-14 text-center text-2xl tracking-[0.45em] font-semibold rounded-2xl border-2 border-slate-200 bg-white/90 focus:border-emerald-500 outline-none transition-colors" />

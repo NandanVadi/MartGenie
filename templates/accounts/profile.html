@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{% url 'logout' %}"
+            <a href="{% url 'customer_logout' %}"
                 class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition shadow-sm">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Logout
             </a>
@@ -64,19 +64,15 @@
             {% if orders %}
             <div class="space-y-3">
                 {% for order in orders %}
-                <div
-                    class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="font-mono text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{{
-                            order.order_id }}</span>
+                        <span class="font-mono text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{{ order.order_id }}</span>
                         <span class="text-xs text-slate-400">{{ order.created_at|date:"d M, h:i A" }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span
-                                class="w-2 h-2 rounded-full {% if order.status == 'COMPLETED' %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
-                            <span class="text-sm font-medium text-slate-700">{{ order.store.name|default:"Unknown Store"
-                                }}</span>
+                            <span class="w-2 h-2 rounded-full {% if order.status == 'COMPLETED' %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                            <span class="text-sm font-medium text-slate-700">{{ order.store.name|default:"Unknown Store" }}</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="font-bold text-emerald-600">Rs {{ order.total_amount }}</span>
@@ -93,38 +89,36 @@
 
                     <!-- Hidden Receipt Data -->
                     <div id="receipt-data-{{ order.order_id }}" class="hidden">
-                        <div class="p-6 bg-white" id="printable-area-{{ order.order_id }}">
-                            <div class="text-center border-b border-dashed border-slate-300 pb-4 mb-4">
-                                <h2 class="text-xl font-bold text-slate-800">MartGenie</h2>
-                                <p class="text-sm text-slate-500">{{ order.store.name|default:"Store" }}</p>
-                                <p class="text-xs text-slate-400 mt-1">{{ order.created_at|date:"d M Y, h:i A" }}</p>
+                        <div style="background:#fff;padding:24px;max-width:360px;font-family:'Segoe UI',sans-serif;" id="printable-area-{{ order.order_id }}">
+                            <div style="text-align:center;border-bottom:2px dashed #e2e8f0;padding-bottom:16px;margin-bottom:16px;">
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
+                                    <span style="color:white;font-size:20px;font-weight:bold;">M</span>
+                                </div>
+                                <p style="font-size:20px;font-weight:800;color:#0f172a;margin:0;">MartGenie</p>
+                                <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{{ order.store.name|default:"Store" }}</p>
+                                <p style="font-size:11px;color:#94a3b8;margin:2px 0 0;">{{ order.created_at|date:"d M Y, h:i A" }}</p>
                             </div>
-
-                            <div class="space-y-2 text-sm text-slate-700 mb-6">
+                            <div style="margin-bottom:16px;">
                                 {% for item in order.items.all %}
-                                <div class="flex justify-between">
-                                    <span>{{ item.product_name }} <span class="text-slate-400">x{{ item.quantity
-                                            }}</span></span>
-                                    <span class="font-medium">Rs {{ item.price }}</span>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+                                    <span style="font-size:13px;color:#334155;">{{ item.product_name }} <span style="color:#94a3b8;font-size:11px;">x{{ item.quantity }}</span></span>
+                                    <span style="font-size:13px;font-weight:600;color:#0f172a;">Rs {{ item.price }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
-
-                            <div class="border-t border-dashed border-slate-300 pt-4 mb-6">
-                                <div class="flex justify-between text-lg font-bold text-slate-900">
-                                    <span>Total</span>
-                                    <span>Rs {{ order.total_amount }}</span>
+                            <div style="background:#f0fdf4;border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:14px;font-weight:700;color:#0f172a;">Total</span>
+                                    <span style="font-size:18px;font-weight:800;color:#059669;">Rs {{ order.total_amount }}</span>
                                 </div>
-                                <div class="flex justify-between text-xs text-slate-500 mt-1">
-                                    <span>Order ID</span>
-                                    <span class="font-mono">{{ order.order_id }}</span>
+                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                                    <span style="font-size:10px;color:#64748b;">Order ID</span>
+                                    <span style="font-size:10px;font-family:monospace;color:#64748b;">{{ order.order_id }}</span>
                                 </div>
                             </div>
-
-                            <div class="flex flex-col items-center">
-                                <div class="receipt-qr p-2 bg-white border border-slate-200 rounded-lg"></div>
-                                <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Scan at Exit Gate
-                                </p>
+                            <div style="text-align:center;">
+                                <div class="receipt-qr" style="display:inline-block;padding:8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;"></div>
+                                <p style="font-size:9px;color:#94a3b8;margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;">Scan at Exit Gate</p>
                             </div>
                         </div>
                     </div>
@@ -137,8 +131,7 @@
                     <i data-lucide="shopping-bag" class="w-8 h-8 text-slate-300"></i>
                 </div>
                 <p class="text-slate-500 font-medium">No orders yet</p>
-                <a href="{% url 'scanner' %}"
-                    class="inline-block mt-4 text-emerald-600 font-semibold text-sm hover:underline">Start Shopping</a>
+                <a href="{% url 'scanner' %}" class="inline-block mt-4 text-emerald-600 font-semibold text-sm hover:underline">Start Shopping</a>
             </div>
             {% endif %}
         </div>
@@ -205,12 +198,7 @@
 
         function downloadReceipt() {
             const element = document.getElementById('modal-body').firstElementChild;
-            const qrContainer = element.querySelector('.receipt-qr').parentNode;
-            const originalDisplay = qrContainer.style.display;
-            qrContainer.style.display = 'none';
-
-            html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
-                qrContainer.style.display = originalDisplay;
+            html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `MartGenie-Bill-${currentOrderId}.png`;
                 link.href = canvas.toDataURL();

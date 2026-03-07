@@ -37,7 +37,7 @@ def customer_login(request):
                     otp = str(random.randint(1000, 9999))
                     request.session['otp'] = otp
                     request.session['phone_number'] = phone_number
-                    print(f"------------\nYour OTP is: {otp}\n------------") # Mock SMS
+                    print(f"------------\nYour OTP is: {otp}\n------------", flush=True) # Mock SMS
                     return redirect('verify_otp')
                 else:
                     messages.error(request, "Please enter a valid phone number.")
@@ -106,4 +106,8 @@ def staff_login(request):
 def logout_view(request):
     logout(request)
     return redirect('login_selection')
+
+def customer_logout_view(request):
+    logout(request)
+    return redirect('customer_login')
 
