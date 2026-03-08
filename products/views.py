@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from .models import Product
 from inventory.models import InventoryItem
 from core.models import Store
@@ -16,8 +17,18 @@ def get_products(request, store_code):
         if not store:
              return JsonResponse([], safe=False)
 
-        # Get all products
-        all_products = Product.objects.all()
+        # Optional search query
+        search_query = request.GET.get('q', '').strip()
+
+        # Get products (filtered if search query exists)
+        if search_query:
+            all_products = Product.objects.filter(
+                Q(name__icontains=search_query) |
+                Q(barcode__icontains=search_query) |
+                Q(category__icontains=search_query)
+            )
+        else:
+            all_products = Product.objects.all()
         
         # Get inventory mapping
         inventory_map = {
@@ -39,9 +50,11 @@ def get_products(request, store_code):
             })
             
         return JsonResponse(products_data, safe=False)
+
     except Exception as e:
         print(f"Error fetching products: {e}")
         return JsonResponse([], safe=False)
+
 
 from django.shortcuts import render
 from django.contrib.admin.views.decorators import staff_member_required
@@ -52,9 +65,11 @@ import json
 def inventory_manager(request):
     return render(request, 'products/inventory_manager.html')
 
+
 @csrf_exempt
 @staff_member_required
 def inventory_api(request):
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -68,14 +83,17 @@ def inventory_api(request):
             product = Product.objects.filter(barcode=barcode).first()
             
             # Find store (assume admin belongs to a store or select first store for demo)
-            store = Store.objects.first() 
+            store = Store.objects.first()
+
             if not store:
                  return JsonResponse({'status': 'error', 'message': 'No store configured'})
             
             if action == 'fetch':
+
                 if product:
-                    # Get inventory
+
                     inv_item, _ = InventoryItem.objects.get_or_create(store=store, product=product)
+
                     return JsonResponse({
                         'status': 'found',
                         'product': {
@@ -89,14 +107,20 @@ def inventory_api(request):
                     return JsonResponse({'status': 'not_found', 'barcode': barcode})
             
             elif action == 'update_stock':
+
                 qty_change = int(data.get('quantity', 0))
+
                 if product:
                     inv_item, _ = InventoryItem.objects.get_or_create(store=store, product=product)
+
                     inv_item.quantity = max(0, inv_item.quantity + qty_change)
+
                     inv_item.save()
+
                     return JsonResponse({'status': 'success', 'new_stock': inv_item.quantity})
             
             elif action == 'create_product':
+
                 name = data.get('name')
                 price = data.get('price')
                 category = data.get('category')
@@ -107,12 +131,18 @@ def inventory_api(request):
                     price=price,
                     category=category
                 )
+
                 # Initialize inventory
-                InventoryItem.objects.create(store=store, product=product, quantity=data.get('initial_stock', 0))
+                InventoryItem.objects.create(
+                    store=store,
+                    product=product,
+                    quantity=data.get('initial_stock', 0)
+                )
                 
                 return JsonResponse({'status': 'success', 'message': 'Product created'})
 
         except Exception as e:
+
             return JsonResponse({'status': 'error', 'message': str(e)})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid method'})
