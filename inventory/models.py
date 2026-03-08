@@ -14,5 +14,12 @@ class InventoryItem(models.Model):
         verbose_name = "Inventory Item"
         verbose_name_plural = "Inventory Items"
 
+    def is_low_stock(self):
+        """
+        Returns True if the current quantity is below the configured threshold.
+        Useful for dashboard alerts and monitoring.
+        """
+        return self.quantity < self.low_stock_threshold
+
     def __str__(self):
         return f"{self.product.name} - {self.quantity} left in {self.store.name}"
