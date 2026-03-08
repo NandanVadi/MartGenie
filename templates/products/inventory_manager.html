@@ -31,6 +31,26 @@
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Dashboard
             </a>
         </header>
+        <!-- Low Stock Alerts -->
+        <div id="low-stock-alerts" class="mb-6 hidden">
+            <div class="glass-card p-4 rounded-2xl border border-rose-200 bg-rose-50/70">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+                    <h2 class="font-bold text-rose-700">Low Stock Alerts</h2>
+                </div>
+                <div id="low-stock-list" class="text-sm text-rose-700 space-y-1"></div>
+            </div>
+        </div>
+        <!-- Low Stock Alerts -->
+        <div id="low-stock-alerts" class="mb-6 hidden">
+            <div class="glass-card p-4 rounded-2xl border border-rose-200 bg-rose-50/70">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+                    <h2 class="font-bold text-rose-700">Low Stock Alerts</h2>
+                </div>
+                <div id="low-stock-list" class="text-sm text-rose-700 space-y-1"></div>
+            </div>
+        </div>
 
         <div class="grid md:grid-cols-2 gap-6">
             <!-- Scanner Section -->
@@ -78,6 +98,58 @@
 
     <script>
         lucide.createIcons();
+        async function loadLowStockAlerts() {
+            try {
+                const response = await fetch('/inventory/low-stock/');
+                const data = await response.json();
+
+                if (data.count > 0) {
+                    const container = document.getElementById('low-stock-list');
+                    const panel = document.getElementById('low-stock-alerts');
+
+                    container.innerHTML = '';
+
+                    data.items.forEach(item => {
+                        const row = document.createElement('div');
+                        row.textContent = `${item.product_name} — ${item.quantity} left (threshold ${item.threshold})`;
+                        container.appendChild(row);
+                    });
+
+                    panel.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.log("Low stock alert load failed", err);
+            }
+        }
+
+        // Load alerts when page opens
+        loadLowStockAlerts();
+        async function loadLowStockAlerts() {
+            try {
+                const response = await fetch('/inventory/low-stock/');
+                const data = await response.json();
+
+                if (data.count > 0) {
+                    const container = document.getElementById('low-stock-list');
+                    const panel = document.getElementById('low-stock-alerts');
+
+                    container.innerHTML = '';
+
+                    data.items.forEach(item => {
+                        const row = document.createElement('div');
+                        row.textContent = `${item.product_name} — ${item.quantity} left (threshold ${item.threshold})`;
+                        container.appendChild(row);
+                    });
+
+                    panel.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.log("Low stock alert load failed", err);
+            }
+        }
+
+        // Load alerts when page opens
+        loadLowStockAlerts();
         let html5QrCode;
         let currentBarcode = null;
 
@@ -282,12 +354,10 @@
         function startScanner() {
             document.getElementById('start-scan-btn').classList.add('hidden');
             document.getElementById('stop-scan-btn').classList.remove('hidden');
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
-            }
+            html5QrCode = new Html5Qrcode("reader");
 
             const config = {
-                fps: 10,
+                fps: 25,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0,
                 formatsToSupport: [
@@ -297,18 +367,13 @@
                     Html5QrcodeSupportedFormats.UPC_E,
                     Html5QrcodeSupportedFormats.CODE_128,
                     Html5QrcodeSupportedFormats.QR_CODE
-                ]
+                ],
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
             };
 
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                onScanSuccess
-            ).catch(err => {
-                console.error("Error starting camera", err);
-                alert("Could not start camera. Please ensure you have granted camera permissions securely (HTTPS/Localhost).");
-                stopScanner();
-            });
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
         }
 
         function stopScanner() {
