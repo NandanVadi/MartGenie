@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.core.paginator import Paginator
 from .models import Product
 from inventory.models import InventoryItem
 from core.models import Store
@@ -30,6 +31,11 @@ def get_products(request, store_code):
         else:
             all_products = Product.objects.all()
         
+        # Pagination (10 products per page)
+        page_number = request.GET.get('page', 1)
+        paginator = Paginator(all_products, 10)
+        page_obj = paginator.get_page(page_number)
+        
         # Get inventory mapping
         inventory_map = {
             item.product_id: item.quantity 
@@ -37,7 +43,7 @@ def get_products(request, store_code):
         }
         
         products_data = []
-        for product in all_products:
+        for product in page_obj:
             qty = inventory_map.get(product.id, 0)
             products_data.append({
                 'id': product.barcode, 
@@ -49,7 +55,13 @@ def get_products(request, store_code):
                 'image_url': product.image.url if product.image else ''
             })
             
-        return JsonResponse(products_data, safe=False)
+        return JsonResponse({
+            'products': products_data,
+            'page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous()
+        })
 
     except Exception as e:
         print(f"Error fetching products: {e}")
