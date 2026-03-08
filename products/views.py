@@ -31,10 +31,18 @@ def get_products(request, store_code):
         else:
             all_products = Product.objects.all()
         
-        # Pagination (10 products per page)
-        page_number = request.GET.get('page', 1)
-        paginator = Paginator(all_products, 10)
-        page_obj = paginator.get_page(page_number)
+        limit = request.GET.get('limit', '').strip().lower()
+
+        if limit == 'all':
+            # Bypass pagination for scanner
+            page_obj = all_products
+            paginated = False
+        else:
+            # Pagination (10 products per page)
+            page_number = request.GET.get('page', 1)
+            paginator = Paginator(all_products, 10)
+            page_obj = paginator.get_page(page_number)
+            paginated = True
         
         # Get inventory mapping
         inventory_map = {
@@ -55,8 +63,12 @@ def get_products(request, store_code):
                 'image_url': product.image.url if product.image else ''
             })
             
+        if not paginated:
+             return JsonResponse({'products': products_data})
+
         return JsonResponse({
             'products': products_data,
+
             'page': page_obj.number,
             'total_pages': paginator.num_pages,
             'has_next': page_obj.has_next(),

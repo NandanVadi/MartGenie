@@ -13,3 +13,7 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.get_notification_type_display()}] {self.message[:50]}"
+        
+    @property
+    def type_display(self):
+        return self.get_notification_type_display()

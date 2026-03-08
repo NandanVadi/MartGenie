@@ -149,8 +149,29 @@ def dashboard(request):
                 if entry['day']:
                     chart_labels.append(entry['day'].strftime('%b %d, %Y'))
                     chart_values.append(float(entry['total']))
-    
+    # Notification Logic
+    from notifications.models import Notification
+    unread_notifications = Notification.objects.filter(is_read=False).order_by('-created_at')[:10]
+    unread_count = Notification.objects.filter(is_read=False).count()
+
+    context['unread_notifications'] = unread_notifications
+    context['unread_count'] = unread_count
     context['chart_labels'] = chart_labels
     context['chart_values'] = chart_values
 
     return render(request, 'DashBoard.html', context)
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
+
+@login_required
+@require_POST
+@csrf_exempt
+def mark_notifications_read(request):
+    """
+    Marks all unread notifications as read.
+    """
+    from notifications.models import Notification
+    Notification.objects.filter(is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'success', 'message': 'Notifications marked as read'})

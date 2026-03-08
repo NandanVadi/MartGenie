@@ -173,11 +173,12 @@
 
             logDebug(`Connecting to store: ${storeCode}`);
 
-            // Fetch products from real API with cache busting
+            // Fetch products from real API with cache busting and limit=all
             try {
-                const response = await fetch(`/products/api/catalog/${storeCode}/?t=${new Date().getTime()}`);
+                const response = await fetch(`/products/api/catalog/${storeCode}/?limit=all&t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error('Network response was not ok');
-                products = await response.json();
+                const data = await response.json();
+                products = data.products || data; // Handle both paginated and direct array formats gracefully
                 console.log('Loaded products:', products);
                 logDebug(`Loaded ${products.length} products.`);
             } catch (error) {
@@ -356,8 +357,8 @@
             };
 
             html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
+                { facingMode: "environment" },
+                config,
                 onScanSuccess
             ).catch(err => {
                 console.error("Camera start failed", err);
