@@ -8,7 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def payment_view(request):
-    return render(request, 'Payment.html')
+    store_code = request.session.get('store_code')
+    return render(request, 'Payment.html', {'store_code': store_code})
 
 from django.db import transaction
 from products.models import Product

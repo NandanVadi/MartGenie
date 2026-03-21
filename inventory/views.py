@@ -19,7 +19,8 @@ def low_stock_items(request):
     API endpoint to fetch items whose quantity is below their low_stock_threshold.
     """
     low_stock = InventoryItem.objects.select_related('product', 'store').filter(
-        quantity__lt=models.F('low_stock_threshold')
+        quantity__lt=models.F('low_stock_threshold'),
+        store__admin=request.user
     )
 
     data = []

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 def home(request):
@@ -13,6 +13,11 @@ def dashboard(request):
     Renders the admin dashboard with sales statistics, charts, and recent orders.
     Filters data based on the requested time period.
     """
+    # Enforce Store creation for admins
+    if request.user.role == 'ADMIN':
+        from core.models import Store
+        if not Store.objects.filter(admin=request.user).exists():
+            return redirect('admin_management')
     # Imports inside view to avoid circular imports if any, though top-level is better if safe
     from billing.models import Order, OrderItem, GatePassLog
     from products.models import Product
@@ -57,8 +62,18 @@ def dashboard(request):
         except ValueError:
             pass # Fallback to today
 
-    # Filter Orders
-    orders_query = Order.objects.all()
+    # Store Filtering
+    stores = Store.objects.filter(admin=request.user).order_by('name')
+    selected_store = request.GET.get('store', 'all')
+
+    # Base Orders Query (Multi-tenant)
+    orders_query = Order.objects.filter(store__admin=request.user)
+    
+    if selected_store != 'all':
+        try:
+             orders_query = orders_query.filter(store_id=int(selected_store))
+        except ValueError:
+             pass # Invalid store ID, fallback to all
     if start_date and end_date:
         # Filter by range (inclusive)
         # For DateTimeField, end_date needs to cover the whole day, so usually < end_date + 1 day or __date__range
@@ -78,8 +93,14 @@ def dashboard(request):
     # Let's show recent orders from the *selected period* to be consistent
     recent_orders = orders_query.select_related('user').prefetch_related('items').order_by('-created_at')[:5]
     
-    # Product Catalog (Always all)
-    products = Product.objects.all()
+    # Product Catalog
+    products_query = Product.objects.filter(inventory_items__store__admin=request.user)
+    if selected_store != 'all':
+        try:
+            products_query = products_query.filter(inventory_items__store_id=int(selected_store))
+        except ValueError:
+            pass
+    products = products_query.distinct()
     
     context = {
         'total_revenue': total_revenue,
@@ -95,6 +116,9 @@ def dashboard(request):
         'filter_type': filter_type,
         'start_date': start_date.strftime('%Y-%m-%d') if start_date else '',
         'end_date': end_date.strftime('%Y-%m-%d') if end_date else '',
+        
+        'stores': stores,
+        'selected_store': selected_store,
     }
 
     # Chart Data Logic
@@ -151,8 +175,15 @@ def dashboard(request):
                     chart_values.append(float(entry['total']))
     # Notification Logic
     from notifications.models import Notification
-    unread_notifications = Notification.objects.filter(is_read=False).order_by('-created_at')[:10]
-    unread_count = Notification.objects.filter(is_read=False).count()
+    unread_notifications_query = Notification.objects.filter(is_read=False, store__admin=request.user)
+    if selected_store != 'all':
+        try:
+            unread_notifications_query = unread_notifications_query.filter(store_id=int(selected_store))
+        except ValueError:
+            pass
+
+    unread_notifications = unread_notifications_query.order_by('-created_at')[:10]
+    unread_count = unread_notifications_query.count()
 
     context['unread_notifications'] = unread_notifications
     context['unread_count'] = unread_count
@@ -173,5 +204,5 @@ def mark_notifications_read(request):
     Marks all unread notifications as read.
     """
     from notifications.models import Notification
-    Notification.objects.filter(is_read=False).update(is_read=True)
+    Notification.objects.filter(is_read=False, store__admin=request.user).update(is_read=True)
     return JsonResponse({'status': 'success', 'message': 'Notifications marked as read'})

@@ -37,7 +37,6 @@ def customer_login(request):
                     otp = str(random.randint(1000, 9999))
                     request.session['otp'] = otp
                     request.session['phone_number'] = phone_number
-                    print(f"------------\nYour OTP is: {otp}\n------------", flush=True) # Mock SMS
                     return redirect('verify_otp')
                 else:
                     messages.error(request, "Please enter a valid phone number.")
@@ -52,12 +51,20 @@ def verify_otp(request):
         phone_number = request.session.get('phone_number')
 
         if entered_otp and session_otp and entered_otp == session_otp:
+            # Preserve store_code before login flushes the session
+            store_code = request.session.get('store_code')
+
             # Create or Get User
             user, created = CustomUser.objects.get_or_create(
                 phone_number=phone_number,
                 defaults={'username': phone_number, 'role': 'CUSTOMER'}
             )
             login(request, user)
+
+            # Restore store_code into the new authenticated session
+            if store_code:
+                request.session['store_code'] = store_code
+
             request.session.pop('otp', None) # Safe cleanup
             return redirect('customer_profile') 
         else:
@@ -93,11 +100,8 @@ def staff_login(request):
             if user.role == 'ADMIN':
                 login(request, user)
                 return redirect('dashboard') # Admin Dashboard
-            elif user.role == 'SECURITY':
-                login(request, user)
-                return redirect('security_dashboard') # Security Dashboard
             else:
-                return render(request, 'loginpage.html', {'error': 'Access Denied. Staff only.'})
+                return render(request, 'loginpage.html', {'error': 'Access Denied. This portal is for Admin accounts only.'})
         else:
             return render(request, 'loginpage.html', {'error': 'Invalid Credentials'})
             
@@ -110,4 +114,34 @@ def logout_view(request):
 def customer_logout_view(request):
     logout(request)
     return redirect('customer_login')
+
+@csrf_exempt
+def admin_register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        phone_number = request.POST.get('phone_number', '').strip()
+        
+        if not username or not password:
+            return render(request, 'admin_register.html', {'error': 'Username and password are required'})
+            
+        if not phone_number.isdigit() or len(phone_number) < 10:
+            return render(request, 'admin_register.html', {'error': 'Please enter a valid numeric phone number (min 10 digits)'})
+            
+        if CustomUser.objects.filter(username=username).exists():
+            return render(request, 'admin_register.html', {'error': 'Username already taken'})
+            
+        user = CustomUser.objects.create_user(
+            username=username,
+            password=password,
+            phone_number=phone_number,
+            role='ADMIN',
+            is_staff=True
+        )
+        login(request, user)
+        
+        # Redirect to management so they can add a store immediately
+        return redirect('admin_management')
+        
+    return render(request, 'admin_register.html')
 

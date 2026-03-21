@@ -127,12 +127,7 @@
             setTimeout(() => {
                 const qrContainer = document.getElementById('qrcode');
                 if (qrContainer) {
-                    new QRCode(qrContainer, {
-                        text: order.qrData,
-                        width: 140,
-                        height: 140,
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
+                    qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(order.qrData)}&margin=0" alt="QR Code" crossorigin="anonymous" style="display:block; margin:0 auto; width:140px; height:140px;">`;
                 }
             }, 100);
         }

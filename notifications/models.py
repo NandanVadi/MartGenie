@@ -1,6 +1,8 @@
 from django.db import models
+from core.models import Store
 
 class Notification(models.Model):
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     TYPE_CHOICES = (
         ('LOW_STOCK', 'Low Stock'),
         ('SYSTEM', 'System'),

@@ -33,12 +33,19 @@
 
         const formatAmount = (value) => `Rs ${Number(value).toFixed(2)}`;
 
+        const storeCode = "{{ store_code }}";
+
         window.addEventListener('load', () => {
             const savedCart = localStorage.getItem('mart_genie_cart');
             if (savedCart) {
-                cart = JSON.parse(savedCart);
+                let loadedCart = JSON.parse(savedCart);
+                cart = loadedCart.filter(item => item.storeCode === storeCode);
+                if (cart.length !== loadedCart.length) {
+                    localStorage.setItem('mart_genie_cart', JSON.stringify(cart));
+                }
             }
-            render();
+            render(); // Keeping render() as it's the main function for displaying content. The instruction had renderSummary() but no such function is defined.
+            lucide.createIcons();
         });
 
         function render() {

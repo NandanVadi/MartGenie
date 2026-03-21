@@ -9,7 +9,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <script src="{% static 'js/mockData.js' %}"></script>
 </head>
 
 <body class="min-h-screen flex flex-col relative overflow-hidden text-white">
@@ -40,7 +39,7 @@
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center px-6">
-            <div class="relative w-72 h-72 border-2 border-white/30 rounded-3xl flex items-center justify-center overflow-hidden transition-all duration-300"
+            <div class="relative w-full max-w-sm h-48 border-2 border-white/30 rounded-3xl flex items-center justify-center overflow-hidden transition-all duration-300"
                 id="scan-box">
                 <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_rgba(52,211,153,0.5)] animate-[scan_2s_linear_infinite]"
                     id="scan-line"></div>
@@ -61,7 +60,7 @@
                 <i data-lucide="scan-line" class="text-white/20 w-12 h-12"></i>
             </div>
 
-            <div id="reader" class="rounded-3xl overflow-hidden hidden w-72 h-72 border-2 border-emerald-500 bg-black">
+            <div id="reader" class="rounded-3xl overflow-hidden hidden w-full max-w-sm border-2 border-emerald-500 bg-black" style="min-height: 200px;">
             </div>
 
             <p class="text-white/75 text-sm mt-6 text-center">Position the barcode within the frame</p>
@@ -121,10 +120,6 @@
         </div>
     </div>
 
-    <div id="debug-panel"
-        class="hidden absolute top-0 left-0 right-0 bg-black/80 text-green-400 p-4 font-mono text-xs z-50 h-32 overflow-y-auto">
-        <p>Debug Log:</p>
-    </div>
 
     <style>
         @keyframes scan {
@@ -171,16 +166,13 @@
             btn.disabled = true;
             if (camBtn) camBtn.disabled = true;
 
-            logDebug(`Connecting to store: ${storeCode}`);
 
             // Fetch products from real API with cache busting and limit=all
             try {
                 const response = await fetch(`/products/api/catalog/${storeCode}/?limit=all&t=${new Date().getTime()}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
-                products = data.products || data; // Handle both paginated and direct array formats gracefully
-                console.log('Loaded products:', products);
-                logDebug(`Loaded ${products.length} products.`);
+                products = data.products || data;
             } catch (error) {
                 console.error('Error fetching products:', error);
                 alert('Failed to load store products. Please try again.');
@@ -261,25 +253,15 @@
             showPopup(product);
         }
 
-        function logDebug(msg) {
-            const panel = document.getElementById('debug-panel');
-            const p = document.createElement('p');
-            p.textContent = `> ${msg}`;
-            panel.insertBefore(p, panel.firstChild);
-            console.log(msg);
-        }
 
         function onScanSuccess(decodedText) {
             if (detected) return;
-
-            logDebug(`Scanned: ${decodedText}`);
 
             // Find product by barcode
             const product = products.find(p => p.barcode === decodedText);
 
             if (product) {
                 detected = true;
-                logDebug(`Found: ${product.name}`);
                 if (soundEnabled) {
                     // Simple beep could be added here
                 }
@@ -290,7 +272,6 @@
                     detected = false;
                 }, 2000);
             } else {
-                logDebug(`Product NOT found for: ${decodedText}`);
                 showError(`Product not found: ${decodedText}`);
                 // Optional: detected = true; setTimeout(() => detected = false, 2000); to avoid spam
             }
@@ -344,8 +325,8 @@
 
             const config = {
                 fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
+                qrbox: { width: 280, height: 120 },
+                aspectRatio: 2.0,
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.EAN_13,
                     Html5QrcodeSupportedFormats.EAN_8,

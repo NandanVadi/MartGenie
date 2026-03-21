@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,6 +13,24 @@ def security_dashboard(request):
 
 def security_login(request):
     return render(request, 'Security.html')
+
+@csrf_exempt
+def security_login_post(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        from django.contrib.auth import authenticate
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if user.role == 'SECURITY':
+                from django.contrib.auth import login
+                login(request, user)
+                return redirect('security_dashboard')
+            else:
+                return render(request, 'Security.html', {'error': 'Access Denied. This portal is for Security Guards only.'})
+        else:
+            return render(request, 'Security.html', {'error': 'Invalid username or password.'})
+    return redirect('security_login')
 
 @csrf_exempt
 @login_required
@@ -34,6 +52,11 @@ def verify_pass(request):
             order = Order.objects.filter(order_id=order_id).first()
             if not order:
                  return JsonResponse({'status': 'invalid', 'message': 'Order not found.'})
+
+            # Check Store Authorization
+            if request.user.role == 'SECURITY':
+                if not hasattr(request.user, 'security_profile') or order.store != request.user.security_profile.store:
+                    return JsonResponse({'status': 'invalid', 'message': f'Unauthorized: This bill belongs to {order.store.name}, not your assigned store.'})
 
             # Check if already verified/used
             existing_log = GatePassLog.objects.filter(order=order, status='APPROVED').first()

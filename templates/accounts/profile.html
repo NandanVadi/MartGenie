@@ -91,8 +91,8 @@
                     <div id="receipt-data-{{ order.order_id }}" class="hidden">
                         <div style="background:#fff;padding:24px;max-width:360px;font-family:'Segoe UI',sans-serif;" id="printable-area-{{ order.order_id }}">
                             <div style="text-align:center;border-bottom:2px dashed #e2e8f0;padding-bottom:16px;margin-bottom:16px;">
-                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
-                                    <span style="color:white;font-size:20px;font-weight:bold;">M</span>
+                                <div style="width:48px;height:48px;background:linear-gradient(135deg,#10b981,#0d9488);border-radius:12px;display:inline-block;text-align:center;line-height:48px;margin-bottom:8px;">
+                                    <span style="color:white;font-size:20px;font-weight:bold;margin:0;padding:0;">M</span>
                                 </div>
                                 <p style="font-size:20px;font-weight:800;color:#0f172a;margin:0;">MartGenie</p>
                                 <p style="font-size:12px;color:#64748b;margin:4px 0 0;">{{ order.store.name|default:"Store" }}</p>
@@ -173,13 +173,7 @@
             modalBody.innerHTML = sourceData;
 
             const qrContainer = modalBody.querySelector('.receipt-qr');
-            qrContainer.innerHTML = '';
-            new QRCode(qrContainer, {
-                text: qrData,
-                width: 120,
-                height: 120,
-                correctLevel: QRCode.CorrectLevel.M
-            });
+            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&margin=0" alt="QR Code" crossorigin="anonymous" style="display:block; margin:0 auto; width:120px; height:120px;">`;
 
             modal.classList.remove('hidden');
             setTimeout(() => {

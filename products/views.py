@@ -26,10 +26,11 @@ def get_products(request, store_code):
             all_products = Product.objects.filter(
                 Q(name__icontains=search_query) |
                 Q(barcode__icontains=search_query) |
-                Q(category__icontains=search_query)
-            )
+                Q(category__icontains=search_query),
+                inventory_items__store=store
+            ).distinct()
         else:
-            all_products = Product.objects.all()
+            all_products = Product.objects.filter(inventory_items__store=store).distinct()
         
         limit = request.GET.get('limit', '').strip().lower()
 
@@ -76,7 +77,6 @@ def get_products(request, store_code):
         })
 
     except Exception as e:
-        print(f"Error fetching products: {e}")
         return JsonResponse([], safe=False)
 
 
@@ -106,8 +106,8 @@ def inventory_api(request):
             # Find product
             product = Product.objects.filter(barcode=barcode).first()
             
-            # Find store (assume admin belongs to a store or select first store for demo)
-            store = Store.objects.first()
+            # Find store belonging to this admin
+            store = Store.objects.filter(admin=request.user).first()
 
             if not store:
                  return JsonResponse({'status': 'error', 'message': 'No store configured'})

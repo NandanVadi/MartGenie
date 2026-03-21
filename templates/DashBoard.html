@@ -90,6 +90,11 @@
                     </div>
                 </div>
 
+                <a href="{% url 'admin_management' %}"
+                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-sm">
+                    <i data-lucide="settings" class="h-4 w-4"></i>
+                    Management
+                </a>
                 <a href="{% url 'inventory_manager' %}"
                     class="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-emerald-200">
                     <i data-lucide="scan-barcode" class="h-4 w-4"></i>
@@ -121,35 +126,61 @@
                     </p>
                 </div>
 
-                <div class="glass-card p-2 rounded-xl flex flex-wrap gap-2 items-center">
-                    <a href="?filter=today"
-                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if filter_type == 'today' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Today</a>
-                    <a href="?filter=yesterday"
-                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if filter_type == 'yesterday' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Yesterday</a>
-                    <a href="?filter=week"
-                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if filter_type == 'week' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Week</a>
-                    <a href="?filter=month"
-                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if filter_type == 'month' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Month</a>
-                    <a href="?filter=all"
-                        class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {% if filter_type == 'all' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">All
-                        Time</a>
+                <div class="flex flex-wrap items-center md:justify-end gap-3">
+                    
+                    <!-- Store Selector Dropdown -->
+                    <div class="glass-card p-1.5 rounded-xl shadow-sm">
+                        <form action="" method="get" class="flex items-center m-0">
+                            <input type="hidden" name="filter" value="{{ filter_type }}">
+                            {% if filter_type == 'custom' %}
+                            <input type="hidden" name="start_date" value="{{ start_date }}">
+                            <input type="hidden" name="end_date" value="{{ end_date }}">
+                            {% endif %}
+                            <div class="relative flex items-center">
+                                <i data-lucide="store" class="w-4 h-4 text-emerald-500 absolute left-3"></i>
+                                <select name="store" onchange="this.form.submit()" class="pl-9 pr-8 py-1.5 rounded-lg border-transparent hover:border-slate-200 text-sm focus:outline-none focus:ring-0 bg-transparent font-bold text-slate-800 appearance-none cursor-pointer transition-colors">
+                                    <option value="all" {% if selected_store == 'all' %}selected{% endif %}>All Stores</option>
+                                    {% for s in stores %}
+                                    <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2 pointer-events-none"></i>
+                            </div>
+                        </form>
+                    </div>
 
-                    <div class="h-6 w-px bg-slate-200 mx-1"></div>
+                    <!-- Quick Date Filters -->
+                    <div class="glass-card p-1.5 rounded-xl shadow-sm flex items-center gap-1 overflow-x-auto hide-scrollbar max-w-full">
+                        <a href="?filter=today&store={{ selected_store }}"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'today' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Today</a>
+                        <a href="?filter=yesterday&store={{ selected_store }}"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'yesterday' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Yesterday</a>
+                        <a href="?filter=week&store={{ selected_store }}"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'week' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Week</a>
+                        <a href="?filter=month&store={{ selected_store }}"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'month' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Month</a>
+                        <a href="?filter=all&store={{ selected_store }}"
+                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'all' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">All Time</a>
+                    </div>
 
-                    <form action="" method="get" class="flex items-center gap-2">
-                        <input type="hidden" name="filter" value="custom">
-                        <input type="date" name="start_date" value="{{ start_date }}"
-                            class="px-2 py-1 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required>
-                        <span class="text-slate-400">-</span>
-                        <input type="date" name="end_date" value="{{ end_date }}"
-                            class="px-2 py-1 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required>
-                        <button type="submit"
-                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
-                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </button>
-                    </form>
+                    <!-- Custom Date Picker -->
+                    <div class="glass-card p-1.5 rounded-xl shadow-sm">
+                        <form action="" method="get" class="flex items-center gap-2 m-0">
+                            <input type="hidden" name="store" value="{{ selected_store }}">
+                            <input type="hidden" name="filter" value="custom">
+                            <input type="date" name="start_date" value="{{ start_date }}"
+                                class="px-2 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                required>
+                            <span class="text-slate-400">-</span>
+                            <input type="date" name="end_date" value="{{ end_date }}"
+                                class="px-2 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                required>
+                            <button type="submit"
+                                class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

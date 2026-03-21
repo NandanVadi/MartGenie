@@ -27,12 +27,12 @@
       <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
         Mart<span class="text-emerald-600">Genie</span>
       </h1>
-      <p class="text-slate-600 mt-2 text-sm">Admin and Security access portal</p>
+      <p class="text-slate-600 mt-2 text-sm">Admin access portal</p>
     </div>
 
     <div class="mb-5">
       <h2 class="text-xl font-bold text-slate-800 mb-1">Login</h2>
-      <p class="text-slate-500 text-sm">Enter your credentials to access the portal.</p>
+      <p class="text-slate-500 text-sm">Enter your admin credentials to access the dashboard.</p>
     </div>
 
     <form id="login-form" class="space-y-3" action="{% url 'staff_login' %}" method="POST">
@@ -44,7 +44,7 @@
         <label for="loginId" class="text-sm font-semibold text-slate-700">User ID</label>
         <div class="relative mt-1">
           <i data-lucide="user-round" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-          <input id="loginId" name="username" type="text" placeholder="Enter Admin ID or Guard ID"
+          <input id="loginId" name="username" type="text" placeholder="Enter Admin Username"
             class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none"
             required />
         </div>
@@ -64,15 +64,8 @@
         class="w-full h-12 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition shadow-lg shadow-emerald-200">Continue</button>
     </form>
 
-    <div class="mt-6 grid grid-cols-2 gap-3 text-sm">
-      <div class="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
-        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Admin</p>
-        <p class="font-bold text-slate-800">Use Admin Panel</p>
-      </div>
-      <div class="rounded-xl border border-slate-200 bg-white/80 p-3 text-center">
-        <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Security</p>
-        <p class="font-bold text-slate-800">Contact Admin</p>
-      </div>
+    <div class="mt-6 text-center text-sm">
+      <p class="text-slate-600">Don't have an account? <a href="{% url 'admin_register' %}" class="text-emerald-600 font-bold hover:underline transition-colors">Create Admin Account</a></p>
     </div>
   </div>
 

@@ -73,10 +73,18 @@
 
         const formatAmount = (value) => `Rs ${Number(value).toFixed(2)}`;
 
+        const storeCode = "{{ store_code }}";
+
         window.addEventListener('load', () => {
             const savedCart = localStorage.getItem('mart_genie_cart');
             if (savedCart) {
-                cart = JSON.parse(savedCart);
+                let loadedCart = JSON.parse(savedCart);
+                cart = loadedCart.filter(item => item.storeCode === storeCode);
+                
+                // Keep local storage perfectly synced with the purged cart
+                if (cart.length !== loadedCart.length) {
+                    localStorage.setItem('mart_genie_cart', JSON.stringify(cart));
+                }
             }
             renderCart();
         });

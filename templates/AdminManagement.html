@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management - MartGenie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="min-h-screen text-slate-800 relative overflow-x-hidden bg-slate-50">
+    <div class="pointer-events-none fixed -top-24 -left-20 w-80 h-80 rounded-full bg-teal-200/35 blur-3xl"></div>
+    <div class="pointer-events-none fixed -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl"></div>
+
+    <div class="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5 text-slate-700"></i>
+                </a>
+                <span class="font-extrabold text-xl text-slate-900">Admin <span class="text-emerald-600">Management</span></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 md:px-6 py-8 relative z-10">
+        
+        <div id="alert-container" class="mb-6 hidden"></div>
+
+        {% if stores|length == 0 %}
+        <div class="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50 flex items-start gap-3 fade-in-up shadow-sm">
+            <i data-lucide="info" class="w-5 h-5 text-blue-500 mt-0.5"></i>
+            <div>
+                <h3 class="font-bold text-blue-800">Welcome to MartGenie!</h3>
+                <p class="text-sm text-blue-700 mt-1">To get started, please add your first store below. Once your store is created, you can assign security staff and begin viewing analytics on your dashboard.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid md:grid-cols-2 gap-6">
+            
+
+
+            <!-- Add Store Form -->
+            <div class="glass-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                        <i data-lucide="store" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Add New Store</h2>
+                        <p class="text-xs text-slate-500">Create a new branch location</p>
+                    </div>
+                </div>
+                
+                <form id="add-store-form" class="space-y-4 flex-1 flex flex-col" onsubmit="submitStoreForm(event)">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Store Name</label>
+                        <input type="text" name="name" required placeholder="e.g. Downtown Branch" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Store Code</label>
+                        <input type="text" name="store_code" required placeholder="Unique Code (e.g. ST001)" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Location / Address</label>
+                        <textarea name="location" rows="2" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                    <div class="mt-auto pt-4">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-blue-200 flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add Store
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Assign Security Staff Form (Full Width) -->
+            <div class="glass-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:col-span-2 mt-2">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900">Create & Assign Security Staff</h2>
+                        <p class="text-xs text-slate-500">Generate guard accounts tied to specific stores</p>
+                    </div>
+                </div>
+                
+                <form id="create-security-form" class="space-y-6" onsubmit="submitSecurityForm(event)">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Account Info -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm border-b border-slate-100 pb-2 text-slate-500 font-semibold mb-3">Account Details</h3>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Username / Guard ID</label>
+                                <input type="text" name="username" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                                <input type="password" name="password" required minlength="6" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
+                                <input type="text" name="phone_number" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                        </div>
+
+                        <!-- Assignment Info -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm border-b border-slate-100 pb-2 text-slate-500 font-semibold mb-3">Assignment Details</h3>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Assign to Store</label>
+                                <select name="store_id" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                                    <option value="" disabled selected>Select a store...</option>
+                                    {% for store in stores %}
+                                    <option value="{{ store.id }}">{{ store.name }} ({{ store.store_code }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-1">Employee ID Number</label>
+                                <input type="text" name="employee_id" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Shift Start</label>
+                                    <input type="time" name="shift_start" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Shift End</label>
+                                    <input type="time" name="shift_end" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-slate-100 flex justify-end mt-4">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 px-8 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-orange-200 flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> Create & Assign Guard
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            container.classList.remove('hidden');
+            
+            const isSuccess = type === 'success';
+            const bgClass = isSuccess ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200';
+            const textClass = isSuccess ? 'text-emerald-800' : 'text-rose-800';
+            const icon = isSuccess ? 'check-circle' : 'alert-circle';
+            const iconColor = isSuccess ? 'text-emerald-500' : 'text-rose-500';
+
+            container.innerHTML = `
+                <div class="p-4 rounded-xl border border-solid ${bgClass} flex items-center gap-3">
+                    <i data-lucide="${icon}" class="w-5 h-5 ${iconColor}"></i>
+                    <p class="${textClass} font-medium text-sm">${message}</p>
+                </div>
+            `;
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                container.classList.add('hidden');
+            }, 5000);
+        }
+
+        async function submitForm(url, formData, formId) {
+            try {
+                // Manually grab CSRF token from a cookie if needed, but we can also use @csrf_exempt for simplicity
+                // Since this is a simple Django App that has csrf_exempt applied to its APIs.
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    showAlert(data.message, 'success');
+                    document.getElementById(formId).reset();
+                    if (formId === 'add-store-form') {
+                        // Reload page to update the store dropdown
+                        setTimeout(() => window.location.reload(), 2000);
+                    } else if (formId === 'create-security-form') {
+                        // Automatically bring them back to their newly unlocked dashboard
+                        setTimeout(() => window.location.href = "{% url 'dashboard' %}", 2000);
+                    }
+                } else {
+                    showAlert(data.message || 'An error occurred', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.', 'error');
+            }
+        }
+
+
+
+        function submitStoreForm(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            submitForm("{% url 'add_store_api' %}", formData, 'add-store-form');
+        }
+
+        function submitSecurityForm(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            submitForm("{% url 'create_security_api' %}", formData, 'create-security-form');
+        }
+    </script>
+</body>
+</html>
