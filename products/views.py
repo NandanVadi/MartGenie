@@ -6,6 +6,71 @@ from django.core.paginator import Paginator
 from .models import Product
 from inventory.models import InventoryItem
 from core.models import Store
+import urllib.request
+import json as _json
+
+
+@login_required
+@require_GET
+def barcode_lookup(request, barcode):
+    """
+    Server-side proxy for barcode lookup.
+    Tries multiple APIs in order:
+      1. Open Food Facts India  (best for Indian products)
+      2. Open Food Facts World  (global fallback)
+      3. UPCitemdb              (100 free/day, good for branded goods)
+    Returns: { found: true, name, category, image, source } or { found: false }
+    """
+    barcode = barcode.strip()
+
+    def _fetch(url, timeout=5):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'MartGenie/1.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return _json.loads(resp.read().decode())
+        except Exception:
+            return None
+
+    # 1. Open Food Facts India
+    d = _fetch(f'https://in.openfoodfacts.org/api/v0/product/{barcode}.json')
+    if d and d.get('status') == 1 and d.get('product', {}).get('product_name'):
+        p = d['product']
+        cats = p.get('categories', '')
+        return JsonResponse({
+            'found': True,
+            'name': p['product_name'],
+            'category': cats.split(',')[0].strip() if cats else '',
+            'image': p.get('image_url', ''),
+            'source': 'Open Food Facts India',
+        })
+
+    # 2. Open Food Facts World
+    d = _fetch(f'https://world.openfoodfacts.org/api/v0/product/{barcode}.json')
+    if d and d.get('status') == 1 and d.get('product', {}).get('product_name'):
+        p = d['product']
+        cats = p.get('categories', '')
+        return JsonResponse({
+            'found': True,
+            'name': p['product_name'],
+            'category': cats.split(',')[0].strip() if cats else '',
+            'image': p.get('image_url', ''),
+            'source': 'Open Food Facts',
+        })
+
+    # 3. UPCitemdb (100 free/day)
+    d = _fetch(f'https://api.upcitemdb.com/prod/trial/lookup?upc={barcode}')
+    if d and d.get('code') == 'OK' and d.get('items'):
+        item = d['items'][0]
+        images = item.get('images', [])
+        return JsonResponse({
+            'found': True,
+            'name': item.get('title', ''),
+            'category': item.get('category', ''),
+            'image': images[0] if images else '',
+            'source': 'UPCitemdb',
+        })
+
+    return JsonResponse({'found': False})
 
 @login_required
 @require_GET

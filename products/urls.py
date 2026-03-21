@@ -17,4 +17,9 @@ urlpatterns = [
         views.inventory_api,
         name='inventory_api'
     ),
+    path(
+        'api/barcode-lookup/<str:barcode>/',
+        views.barcode_lookup,
+        name='barcode_lookup'
+    ),
 ]
