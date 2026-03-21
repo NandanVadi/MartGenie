@@ -383,9 +383,15 @@
                                 <td class="p-4 text-slate-900">{{ order.user.phone_number }}</td>
                                 <td class="p-4 text-slate-500">{{ order.items.count }} items</td>
                                 <td class="p-4 font-bold text-slate-900">Rs {{ order.total_amount }}</td>
-                                <td class="p-4"><span
-                                        class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">{{
-                                        order.status }}</span></td>
+                                <td class="p-4">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold
+                                        {% if order.status == 'COMPLETED' %}bg-emerald-100 text-emerald-700
+                                        {% elif order.status == 'PENDING' %}bg-amber-100 text-amber-700
+                                        {% elif order.status == 'FAILED' %}bg-rose-100 text-rose-700
+                                        {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
