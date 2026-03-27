@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 
@@ -162,9 +163,30 @@
     <script>
         lucide.createIcons();
         let currentOrderId = null;
+        let currentQrData = null;
+        let currentOrderData = {};
+
+        // Store order data from Django template into JS
+        const allOrders = {};
+        {% for order in orders %}
+        allOrders['{{ order.order_id }}'] = {
+            orderId: '{{ order.order_id }}',
+            storeName: '{{ order.store.name|default:"Store"|escapejs }}',
+            date: '{{ order.created_at|date:"d M Y, h:i A" }}',
+            total: '{{ order.total_amount }}',
+            qrData: '{{ order.qr_data|escapejs }}',
+            items: [
+                {% for item in order.items.all %}
+                { name: '{{ item.product_name|escapejs }}', qty: {{ item.quantity }}, price: '{{ item.price }}' },
+                {% endfor %}
+            ]
+        };
+        {% endfor %}
 
         function openReceipt(orderId, qrData) {
             currentOrderId = orderId;
+            currentQrData = qrData;
+            currentOrderData = allOrders[orderId];
             const modal = document.getElementById('receipt-modal');
             const content = document.getElementById('receipt-content');
             const modalBody = document.getElementById('modal-body');
@@ -172,14 +194,25 @@
             const sourceData = document.getElementById(`receipt-data-${orderId}`).innerHTML;
             modalBody.innerHTML = sourceData;
 
-            const qrContainer = modalBody.querySelector('.receipt-qr');
-            qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(qrData)}&margin=0" alt="QR Code" crossorigin="anonymous" style="display:block; margin:0 auto; width:120px; height:120px;">`;
-
             modal.classList.remove('hidden');
             setTimeout(() => {
                 content.classList.remove('scale-95', 'opacity-0');
                 content.classList.add('scale-100', 'opacity-100');
-            }, 10);
+
+                // Render QR after modal is visible so canvas has dimensions
+                const qrContainer = modalBody.querySelector('.receipt-qr');
+                if (qrContainer && qrData) {
+                    qrContainer.innerHTML = '';
+                    new QRCode(qrContainer, {
+                        text: qrData,
+                        width: 120,
+                        height: 120,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            }, 50);
         }
 
         function closeReceipt() {
@@ -191,13 +224,127 @@
         }
 
         function downloadReceipt() {
-            const element = document.getElementById('modal-body').firstElementChild;
-            html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `MartGenie-Bill-${currentOrderId}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
+            const data = currentOrderData;
+            if (!data) return;
+
+            const { jsPDF } = window.jspdf;
+            const pageW = 300;
+            let y = 0;
+
+            // Estimate page height
+            const itemCount = data.items.length;
+            const estimatedH = 320 + (itemCount * 22) + 160;
+
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: [pageW, estimatedH] });
+
+            // -- Header --
+            pdf.setFillColor(16, 185, 129);
+            pdf.roundedRect(pageW / 2 - 20, 20, 40, 40, 8, 8, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(18);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('M', pageW / 2, 47, { align: 'center' });
+
+            y = 80;
+            pdf.setTextColor(15, 23, 42);
+            pdf.setFontSize(16);
+            pdf.setFont('helvetica', 'bold');
+            pdf.text('MartGenie', pageW / 2, y, { align: 'center' });
+
+            y += 16;
+            pdf.setFontSize(9);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(100, 116, 139);
+            pdf.text(data.storeName, pageW / 2, y, { align: 'center' });
+
+            y += 13;
+            pdf.setFontSize(8);
+            pdf.setTextColor(148, 163, 184);
+            pdf.text(data.date, pageW / 2, y, { align: 'center' });
+
+            // Dashed line
+            y += 14;
+            pdf.setDrawColor(226, 232, 240);
+            pdf.setLineDashPattern([3, 3], 0);
+            pdf.line(20, y, pageW - 20, y);
+            pdf.setLineDashPattern([], 0);
+
+            // -- Items --
+            y += 18;
+            data.items.forEach(item => {
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(10);
+                pdf.setTextColor(51, 65, 85);
+                pdf.text(`${item.name} x${item.qty}`, 24, y);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(15, 23, 42);
+                pdf.text(`Rs ${item.price}`, pageW - 24, y, { align: 'right' });
+                y += 20;
             });
+
+            // -- Total Box --
+            y += 6;
+            pdf.setFillColor(240, 253, 244);
+            pdf.roundedRect(20, y, pageW - 40, 48, 6, 6, 'F');
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(11);
+            pdf.setTextColor(15, 23, 42);
+            pdf.text('Total', 32, y + 20);
+            pdf.setFontSize(14);
+            pdf.setTextColor(5, 150, 105);
+            pdf.text(`Rs ${data.total}`, pageW - 32, y + 20, { align: 'right' });
+            pdf.setFontSize(7);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('Order ID', 32, y + 38);
+            pdf.setFont('courier', 'normal');
+            pdf.text(data.orderId, pageW - 32, y + 38, { align: 'right' });
+
+            y += 64;
+
+            // -- QR Code --
+            if (currentQrData) {
+                // Create a temporary hidden div to render QR
+                const tempDiv = document.createElement('div');
+                tempDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px;';
+                document.body.appendChild(tempDiv);
+
+                new QRCode(tempDiv, {
+                    text: currentQrData,
+                    width: 240,
+                    height: 240,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                // QRCode.js creates a canvas, grab it after a short delay
+                setTimeout(() => {
+                    const qrCanvas = tempDiv.querySelector('canvas');
+                    if (qrCanvas) {
+                        const qrImg = qrCanvas.toDataURL('image/png');
+                        const qrSize = 100;
+                        const qrX = (pageW - qrSize) / 2;
+
+                        // QR border
+                        pdf.setDrawColor(226, 232, 240);
+                        pdf.setLineDashPattern([], 0);
+                        pdf.roundedRect(qrX - 6, y - 6, qrSize + 12, qrSize + 12, 4, 4, 'S');
+
+                        pdf.addImage(qrImg, 'PNG', qrX, y, qrSize, qrSize);
+
+                        y += qrSize + 14;
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(7);
+                        pdf.setTextColor(148, 163, 184);
+                        pdf.text('SCAN AT EXIT GATE', pageW / 2, y, { align: 'center' });
+                    }
+
+                    document.body.removeChild(tempDiv);
+                    pdf.save(`MartGenie-Bill-${currentOrderId}.pdf`);
+                }, 200);
+            } else {
+                pdf.save(`MartGenie-Bill-${currentOrderId}.pdf`);
+            }
         }
     </script>
 </body>
