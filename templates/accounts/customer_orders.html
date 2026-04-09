@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - MartGenie</title>
+    <title>My Orders - MartGenie Customer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -31,66 +31,47 @@
     </script>
 </head>
 
-<body class="min-h-screen flex flex-col bg-brand-base text-brand-text relative overflow-x-hidden font-sans pb-20">
+<body class="min-h-screen flex flex-col bg-brand-base text-brand-text relative overflow-x-hidden font-sans pb-24">
 
-    <!-- Soft background -->
     <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
     <div class="fixed bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-20 px-5 pt-8 pb-4 flex items-center justify-between bg-brand-base/80 backdrop-blur-md">
-        <a href="{% url 'spending_dashboard' %}" class="w-8 h-8 flex items-center justify-start text-brand-text">
-            <i data-lucide="arrow-left" class="w-5 h-5"></i>
-        </a>
-        <h1 class="font-bold text-lg text-brand-text">My Profile</h1>
-        <div class="w-8"></div>
+    <header class="sticky top-0 z-20 px-5 pt-8 pb-4 bg-brand-base/80 backdrop-blur-md flex items-center justify-between">
+        <h1 class="font-bold text-2xl text-brand-text">My Orders</h1>
     </header>
 
     <!-- Content -->
-    <main class="flex-1 px-5 pt-2 pb-24 max-w-xl mx-auto w-full z-10 space-y-6 relative">
-
-        <!-- User Profile Center -->
-        <div class="flex flex-col items-center relative">
-            <div class="relative">
-                <div class="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border-2 border-white shadow-md cursor-pointer hover:shadow-lg transition-transform hover:scale-105 active:scale-95" onclick="openAvatarModal()">
-                    <!-- Avatar Image (Dicebear generic) -->
-                    <img id="user-avatar-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ request.user.username|default:'MartgenieUser' }}&backgroundColor=0284c7" alt="Avatar" class="w-full h-full object-cover">
-                </div>
-                <!-- Verification Badge -->
-                <div class="absolute bottom-0 right-0 w-7 h-7 bg-brand-primary border-2 border-white rounded-full flex items-center justify-center shadow-sm pointer-events-none">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-white fill-brand-primary"></i>
-                </div>
-            </div>
-            
-            <h2 class="text-xl font-bold text-brand-text mt-4">{{ request.user.first_name|default:request.user.phone_number }}</h2>
-            <p class="text-sm text-brand-muted mt-1">Preferred Member</p>
-        </div>
-
-        <!-- Stats Card -->
-        <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-50">
-            <div class="flex justify-between px-2">
-                <div>
-                    <p class="text-[10px] font-bold text-brand-muted tracking-widest uppercase mb-1.5">Total Orders</p>
-                    <p class="text-2xl font-bold text-brand-text">{{ orders.count }}</p>
+    <main class="flex-1 px-5 pt-2 pb-10 max-w-xl mx-auto w-full z-10 space-y-6 relative">
+    
+        <!-- Active Gate Passes Tab -->
+        {% if orders %}
+        {% with active_passes=orders|slice:":1" %} <!-- Assuming first order is latest for demo, ideally filter by PENDING pass status -->
+        <div class="mb-6">
+            <h2 class="text-xs font-bold text-brand-muted uppercase tracking-widest mb-3">Recent Purchase</h2>
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[2rem] p-5 shadow-lg border border-slate-700 text-white cursor-pointer" onclick="openReceipt('{{ active_passes.0.order_id }}', '{{ active_passes.0.qr_data|escapejs }}')">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="qr-code" class="w-5 h-5 text-emerald-400"></i>
+                        <span class="font-bold text-sm">Gate Pass Ready</span>
+                    </div>
+                    <span class="text-xs text-slate-400">{{ active_passes.0.created_at|date:"h:i A" }}</span>
                 </div>
                 <div>
-                    <p class="text-[10px] font-bold text-brand-muted tracking-widest uppercase mb-1.5">Member Since</p>
-                    <p class="text-base font-bold text-brand-text mt-1.5">{{ request.user.date_joined|date:"M Y" }}</p>
+                     <p class="text-2xl font-bold">Rs {{ active_passes.0.total_amount }}</p>
+                     <p class="text-sm text-slate-300 mt-1">{{ active_passes.0.store.name|default:"MartGenie Store" }}</p>
+                </div>
+                <div class="mt-5 w-full bg-white/10 hover:bg-white/20 py-2.5 rounded-xl text-center text-sm font-bold transition-all">
+                    Show QR at Exit
                 </div>
             </div>
-            <div class="h-px bg-slate-100 my-4"></div>
-            <a href="{% url 'spending_dashboard' %}" class="flex items-center justify-between text-sm font-bold text-brand-primary group px-2">
-                Go to Spending Dashboard
-                <i data-lucide="chevron-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
-            </a>
         </div>
+        {% endwith %}
+        {% endif %}
 
         <!-- Order History -->
-        <div class="fade-in-up">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="font-bold text-lg text-brand-text">My Orders</h2>
-                <a href="#" class="text-xs font-bold text-brand-primary hover:text-brand-accent transition-colors">View all</a>
-            </div>
+        <div>
+            <h2 class="text-xs font-bold text-brand-muted uppercase tracking-widest mb-3">Order History</h2>
 
             {% if orders %}
             <div class="space-y-4">
@@ -123,41 +104,19 @@
                 </div>
                 <p class="text-brand-text font-bold">No Orders Yet</p>
                 <p class="text-xs text-brand-muted mt-1">You haven't placed any orders yet.</p>
+                {% if request.session.store_code %}
+                <a href="{% url 'scanner' %}" class="inline-flex mt-5 bg-brand-primary text-white font-semibold px-6 py-3 rounded-full shadow-md active:scale-95 transition-all gap-2 text-sm">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> Start Shopping
+                </a>
+                {% else %}
+                <a href="{% url 'customer_home' %}" onclick="alert('First scan the store code from the home page, then you can scan the product barcode.');" class="inline-flex mt-5 bg-brand-primary text-white font-semibold px-6 py-3 rounded-full shadow-md active:scale-95 transition-all gap-2 text-sm">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i> Scan to Enter
+                </a>
+                {% endif %}
             </div>
             {% endif %}
         </div>
-
-        <!-- Settings Cards -->
-        <div class="bg-slate-50/60 rounded-2xl p-2 space-y-1">
-            <button onclick="toggleSettings()" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all group">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="settings" class="w-5 h-5 text-brand-muted"></i>
-                    <span class="font-semibold text-brand-text text-[15px]">Account Settings</span>
-                </div>
-                <i data-lucide="chevron-down" id="settings-chevron" class="w-4 h-4 text-brand-muted transition-transform duration-300"></i>
-            </button>
-            
-            <div id="settings-submenu" class="hidden flex-col space-y-1 pl-4 pr-2 pb-2">
-                <a href="#" class="flex items-center justify-between p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="edit-3" class="w-4 h-4 text-brand-muted group-hover:text-brand-primary"></i>
-                        <span class="font-semibold text-brand-text text-sm">Edit Profile</span>
-                    </div>
-                </a>
-                <a href="javascript:void(0)" onclick="handleLogout()" class="flex items-center justify-between p-3 rounded-xl hover:bg-white hover:shadow-sm transition-all group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="log-out" class="w-4 h-4 text-brand-muted group-hover:text-brand-primary"></i>
-                        <span class="font-semibold text-brand-text text-sm">Logout</span>
-                    </div>
-                </a>
-                <a href="javascript:void(0)" onclick="openDeleteModal()" class="flex items-center justify-between p-3 rounded-xl hover:bg-red-50 hover:shadow-sm transition-all group mt-1">
-                    <div class="flex items-center gap-3 text-red-500">
-                        <i data-lucide="user-x" class="w-4 h-4"></i>
-                        <span class="font-semibold text-sm">Delete Account</span>
-                    </div>
-                </a>
-            </div>
-        </div>
+        
     </main>
 
     <!-- Bottom Navigation -->
@@ -167,22 +126,22 @@
                 <i data-lucide="home" class="w-5 h-5"></i>
                 <span class="text-[9px] font-bold tracking-wide">HOME</span>
             </a>
-            <a href="{% url 'customer_orders' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
-                <i data-lucide="receipt" class="w-5 h-5"></i>
+            <a href="{% url 'customer_orders' %}" class="flex flex-col items-center gap-1 min-w-[60px] bg-brand-accent/15 text-brand-primary py-2 px-4 rounded-2xl transition-colors">
+                <i data-lucide="receipt" class="w-5 h-5 fill-brand-primary"></i>
                 <span class="text-[9px] font-bold tracking-wide">ORDERS</span>
             </a>
             <a href="{% url 'scanner' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
                 <i data-lucide="store" class="w-5 h-5"></i>
                 <span class="text-[9px] font-bold tracking-wide">STORE</span>
             </a>
-            <a href="{% url 'customer_profile' %}" class="flex flex-col items-center gap-1 min-w-[60px] bg-brand-accent/15 text-brand-primary py-2 px-4 rounded-2xl">
-                <i data-lucide="user" class="w-5 h-5 fill-brand-primary"></i>
+            <a href="{% url 'customer_profile' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="user" class="w-5 h-5"></i>
                 <span class="text-[9px] font-bold tracking-wide">PROFILE</span>
             </a>
         </div>
     </nav>
 
-    <!-- Receipt Modal -->
+    <!-- Receipt Modal (Same as Profile) -->
     <div id="receipt-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl transform transition-all scale-95 opacity-0 flex flex-col max-h-[85vh]" id="receipt-content">
             
@@ -205,143 +164,10 @@
             </div>
         </div>
     </div>
-    <!-- Avatar Selection Modal -->
-    <div id="avatar-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-xl transform transition-all scale-95 opacity-0 flex flex-col" id="avatar-content">
-            <div class="p-5 flex items-center justify-between border-b border-slate-100">
-                <h3 class="font-bold text-brand-text">Choose Avatar</h3>
-                <button onclick="closeAvatarModal()" class="bg-slate-50 hover:bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center transition-colors"><i data-lucide="x" class="w-4 h-4 text-brand-muted"></i></button>
-            </div>
-            
-            <div class="p-6 grid grid-cols-4 gap-4" id="avatar-options">
-                <!-- Injected via JS -->
-            </div>
-            
-        </div>
-    </div>
 
-    <!-- Delete Account Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-xl transform transition-all scale-95 opacity-0 flex flex-col" id="delete-content">
-            <div class="p-8 text-center">
-                <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="alert-triangle" class="w-10 h-10 text-red-500"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-brand-text mb-2">Delete Account?</h3>
-                <p class="text-brand-muted text-sm leading-relaxed mb-8"> This action is permanent and cannot be undone. All your profile data will be lost.</p>
-                
-                <div class="flex flex-col gap-3">
-                    <button onclick="handleDeleteAccount()" class="w-full bg-red-500 hover:bg-red-600 text-white py-4 rounded-2xl font-bold transition-colors shadow-lg shadow-red-200">
-                        Yes, Delete My Account
-                    </button>
-                    <button onclick="closeDeleteModal()" class="w-full bg-slate-50 hover:bg-slate-100 text-brand-text py-4 rounded-2xl font-bold transition-colors">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JS for Receipt Modal & Avatars -->
+    <!-- JS for Receipt Modal -->
     <script>
         lucide.createIcons();
-
-        function handleLogout() {
-            // Clear cart from localStorage
-            localStorage.removeItem('mart_genie_cart');
-            localStorage.removeItem('mg_avatar_seed');
-            // Redirect to actual logout URL
-            window.location.href = "{% url 'customer_logout' %}";
-        }
-
-        function handleDeleteAccount() {
-            // Clear cart from localStorage
-            localStorage.removeItem('mart_genie_cart');
-            localStorage.removeItem('mg_avatar_seed');
-            // Redirect to actual delete URL
-            window.location.href = "{% url 'account_delete' %}";
-        }
-
-        function openDeleteModal() {
-            const modal = document.getElementById('delete-modal');
-            const content = document.getElementById('delete-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeDeleteModal() {
-            const modal = document.getElementById('delete-modal');
-            const content = document.getElementById('delete-content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 200);
-        }
-
-        function toggleSettings() {
-            const submenu = document.getElementById('settings-submenu');
-            const chevron = document.getElementById('settings-chevron');
-            if (submenu.classList.contains('hidden')) {
-                submenu.classList.remove('hidden');
-                submenu.classList.add('flex');
-                chevron.style.transform = 'rotate(180deg)';
-            } else {
-                submenu.classList.add('hidden');
-                submenu.classList.remove('flex');
-                chevron.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        // --- Avatar Selection Logic ---
-        const avatarSeeds = ['Felix', 'Aneka', 'Sarah', 'Leo', 'Max', 'Luna', 'Boots'];
-        const avatarColor = '0284c7';
-        
-        // initialize avatar across UI
-        function updateAvatarUI() {
-            const savedAvatar = localStorage.getItem('mg_avatar_seed');
-            const seed = savedAvatar || '{{ request.user.username|default:"MartgenieUser" }}';
-            const imgEl = document.getElementById('user-avatar-img');
-            if (imgEl) {
-                imgEl.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=${avatarColor}`;
-            }
-        }
-        updateAvatarUI();
-
-        function openAvatarModal() {
-            const modal = document.getElementById('avatar-modal');
-            const content = document.getElementById('avatar-content');
-            const optionsContainer = document.getElementById('avatar-options');
-
-            optionsContainer.innerHTML = avatarSeeds.map((seed, idx) => `
-                <div class="cursor-pointer hover:scale-110 transition-transform active:scale-95" onclick="selectAvatar('${seed}')">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=${avatarColor}" class="w-full h-auto rounded-full shadow-sm border-2 border-transparent hover:border-brand-primary">
-                </div>
-            `).join('');
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        }
-
-        function closeAvatarModal() {
-            const modal = document.getElementById('avatar-modal');
-            const content = document.getElementById('avatar-content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { modal.classList.add('hidden'); }, 200);
-        }
-
-        function selectAvatar(seed) {
-            localStorage.setItem('mg_avatar_seed', seed);
-            updateAvatarUI();
-            closeAvatarModal();
-        }
-
-        // --- Receipt logic follows ---
         let currentOrderId = null;
         let currentQrData = null;
         let currentOrderData = {};

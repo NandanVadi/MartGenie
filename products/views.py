@@ -172,10 +172,14 @@ def inventory_api(request):
             product = Product.objects.filter(barcode=barcode).first()
             
             # Find store belonging to this admin
-            store = Store.objects.filter(admin=request.user).first()
+            selected_store_id = request.session.get('admin_selected_store')
+            if selected_store_id and selected_store_id != 'all':
+                store = Store.objects.filter(admin=request.user, id=selected_store_id).first()
+            else:
+                store = Store.objects.filter(admin=request.user).first()
 
             if not store:
-                 return JsonResponse({'status': 'error', 'message': 'No store configured'})
+                 return JsonResponse({'status': 'error', 'message': 'No store selected or configured'})
             
             if action == 'fetch':
 

@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - MartGenie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f5f7f6', text: '#1a1d1b', muted: '#64756b',
+                            primary: '#006c49', accent: '#10b981',
+                            surface: '#ffffff', highlight: '#eef3f0',
+                            sidebar: '#f0f5f2', card: '#ffffff',
+                            green50: '#ecfdf5', green100: '#d1fae5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-link { transition: all 0.2s ease; }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #006c49, #10b981);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 108, 73, 0.3);
+        }
+        .sidebar-link:not(.active):hover { background: #e8f0ec; }
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeInUp 0.5s ease forwards; }
+    </style>
+</head>
+
+<body class="min-h-screen bg-brand-base text-brand-text font-sans">
+    <!-- TOP NAVBAR -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <span class="text-xl font-extrabold tracking-tight text-brand-text">Mart<span class="text-brand-primary">Genie</span></span>
+            
+            <!-- Store Selector -->
+            <form action="" method="get" class="m-0">
+                <input type="hidden" name="filter" value="{{ filter_type }}">
+                <div class="relative">
+                    <select name="store" onchange="this.form.submit()" class="appearance-none bg-brand-highlight border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm font-semibold text-brand-text cursor-pointer outline-none focus:border-brand-primary transition-colors">
+                        <option value="all" {% if selected_store == 'all' %}selected{% endif %}>All Stores</option>
+                        {% for s in stores %}
+                        <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-brand-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </form>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'dashboard' %}" class="text-sm font-semibold text-brand-muted hover:text-brand-text transition-colors">Dashboard</a>
+            <a href="{% url 'logout' %}" class="text-sm font-semibold text-brand-muted hover:text-red-500 transition-colors">Logout</a>
+        </div>
+    </nav>
+
+    <div class="flex min-h-[calc(100vh-4rem)]">
+        <!-- LEFT SIDEBAR -->
+        <aside class="w-56 bg-white border-r border-gray-100 p-5 flex flex-col gap-1 shrink-0 hidden lg:flex">
+            <div class="mb-6 px-2">
+                <h3 class="font-bold text-brand-text text-sm">
+                    {% if current_store %}{{ current_store.name }}{% else %}All Stores{% endif %}
+                </h3>
+                <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-muted mt-0.5">Analytics Engine</p>
+            </div>
+            <a href="{% url 'dashboard' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </a>
+            <a href="{% url 'inventory_manager' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="package" class="w-5 h-5"></i> Inventory
+            </a>
+            <a href="{% url 'sales_ledger' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="trending-up" class="w-5 h-5"></i> Sales
+            </a>
+            <a href="{% url 'customers_crm' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="users" class="w-5 h-5"></i> Customers
+            </a>
+            <a href="{% url 'reports' %}" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Reports
+            </a>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 p-6 lg:p-8 overflow-y-auto w-full">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 fade-up">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-brand-text tracking-tight">Business Reports</h1>
+                    <p class="text-brand-muted text-sm font-medium mt-1">Deep insights powered by Matplotlib analytics.</p>
+                </div>
+                <div class="flex items-center gap-3 mt-4 sm:mt-0">
+                    <!-- Time Filter Pills -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-1 flex items-center gap-0.5 text-xs">
+                        <a href="?filter=today" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'today' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Day</a>
+                        <a href="?filter=week" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'week' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Week</a>
+                        <a href="?filter=month" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'month' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Month</a>
+                        <a href="?filter=all" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'all' %}bg-brand-primary text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
+                <!-- Top Products Chart -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm fade-up" style="animation-delay: 0.1s;">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-bold text-brand-text">Top Products</h3>
+                            <p class="text-xs text-brand-muted mt-0.5">By quantity sold</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="trophy" class="w-4 h-4 text-brand-accent"></i>
+                        </div>
+                    </div>
+                    <div class="w-full flex justify-center">
+                        <img src="data:image/png;base64,{{ top_products_chart }}" alt="Top Products Chart" class="max-w-full h-auto drop-shadow-sm">
+                    </div>
+                </div>
+
+                <!-- Revenue Chart -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm fade-up" style="animation-delay: 0.2s;">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-bold text-brand-text">Revenue Timeline</h3>
+                            <p class="text-xs text-brand-muted mt-0.5">Last 7 days performance</p>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-brand-primary"></i>
+                        </div>
+                    </div>
+                    <div class="w-full flex justify-center">
+                        <img src="data:image/png;base64,{{ revenue_chart }}" alt="Revenue Chart" class="max-w-full h-auto drop-shadow-sm">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

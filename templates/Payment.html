@@ -6,34 +6,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment - MartGenie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-    <style>
-        .payment-option.selected {
-            border-color: #0f766e;
-            background: rgba(236, 253, 245, 0.9);
-            box-shadow: 0 10px 20px -16px rgba(15, 118, 110, 0.45);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#3c4a42',
+                            primary: '#006c49', accent: '#10b981', 
+                            surface: '#ffffff', highlight: '#f2f4f6'
+                        }
+                    }
+                }
+            }
         }
-    </style>
+    </script>
 </head>
 
-<body class="min-h-screen flex flex-col text-slate-800 relative overflow-hidden">
-    <div class="pointer-events-none fixed -top-24 -left-20 w-80 h-80 rounded-full bg-teal-200/35 blur-3xl"></div>
-    <div class="pointer-events-none fixed -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl"></div>
+<body class="min-h-screen flex flex-col text-brand-text bg-brand-base relative font-sans">
+    <!-- Ethereal Background Gradients -->
+    <div class="fixed top-[-10%] left-[-5%] w-[50rem] h-[50rem] rounded-full bg-[#10b981]/10 blur-[120px] pointer-events-none -z-10 animate-pulse"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-[#0D9488]/10 blur-[120px] pointer-events-none -z-10 animate-pulse"></div>
 
-    <div id="main-container" class="flex-1 flex flex-col relative z-10"></div>
+    <div id="main-container" class="flex-1 flex flex-col relative z-10 w-full h-full"></div>
 
     <script>
         let cart = [];
-        let paymentMethod = 'upi';
-        let upiId = '';
         let isProcessing = false;
         let isSuccess = false;
+        let payError = '';
 
         const formatAmount = (value) => `Rs ${Number(value).toFixed(2)}`;
-
         const storeCode = "{{ store_code }}";
+        const razorpayKeyId = "{{ razorpay_key_id }}";
 
         window.addEventListener('load', () => {
             const savedCart = localStorage.getItem('mart_genie_cart');
@@ -44,7 +57,7 @@
                     localStorage.setItem('mart_genie_cart', JSON.stringify(cart));
                 }
             }
-            render(); // Keeping render() as it's the main function for displaying content. The instruction had renderSummary() but no such function is defined.
+            render(); 
             lucide.createIcons();
         });
 
@@ -54,123 +67,137 @@
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const tax = subtotal * 0.18;
             const total = subtotal + tax;
+            const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
             if (isSuccess) {
                 container.innerHTML = `
-                    <div class="flex-1 flex flex-col items-center justify-center p-6 fade-in text-center">
-                        <div class="w-24 h-24 rounded-full bg-emerald-500 flex items-center justify-center mb-6 shadow-xl shadow-emerald-200 animate-[bounce_1s]">
-                            <i data-lucide="check-circle-2" class="w-14 h-14 text-white"></i>
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 text-center transition-all bg-white/50 backdrop-blur-3xl absolute inset-0 z-50">
+                        <div class="w-32 h-32 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center mb-8 shadow-2xl shadow-brand-accent/40 animate-[pulse_2s_ease-in-out_infinite]">
+                            <i data-lucide="check-circle-2" class="w-20 h-20 text-white"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2 fade-in-up delay-100">Payment Successful</h2>
-                        <p class="text-slate-600 fade-in-up delay-200">Generating your secure exit pass...</p>
+                        <h2 class="text-4xl font-extrabold text-brand-text mb-4 tracking-tight">Payment Verified</h2>
+                        <p class="text-brand-muted text-lg font-medium">Generating your secure exit pass...</p>
                     </div>
                 `;
             } else if (isProcessing) {
                 container.innerHTML = `
-                    <div class="flex-1 flex flex-col items-center justify-center p-6 fade-in text-center">
-                        <div class="relative">
-                            <div class="w-16 h-16 rounded-full border-4 border-slate-200 border-t-emerald-500 animate-spin"></div>
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 text-center transition-all absolute inset-0 z-50 bg-white/80 backdrop-blur-2xl">
+                        <div class="relative mb-8">
+                            <div class="w-24 h-24 rounded-full border-[6px] border-brand-highlight border-t-brand-primary animate-spin shadow-lg"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i data-lucide="shield" class="w-8 h-8 text-brand-primary animate-pulse"></i>
+                            </div>
                         </div>
-                        <h2 class="text-xl font-semibold text-slate-900 mt-6 mb-2">Processing Payment</h2>
-                        <p class="text-slate-600">Please wait while your payment is securely processed.</p>
+                        <h2 class="text-3xl font-bold text-brand-text mb-3 tracking-tight">Processing Payment</h2>
+                        <p class="text-brand-muted text-lg">Please do not refresh or close this window.</p>
+                        <p class="text-brand-muted mt-2 text-sm italic">Simulating bank authentication...</p>
                     </div>
                 `;
             } else if (cart.length === 0) {
                 container.innerHTML = `
-                    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center fade-in">
-                        <div class="w-20 h-20 rounded-full border border-slate-200 bg-white/80 flex items-center justify-center mb-5">
-                            <i data-lucide="shopping-bag" class="w-9 h-9 text-slate-400"></i>
+                    <div class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white/50 backdrop-blur-xl m-4 rounded-[3rem] border border-white">
+                        <div class="w-28 h-28 rounded-full border border-white bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-8">
+                            <i data-lucide="credit-card" class="w-12 h-12 text-brand-muted opacity-50"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">No items to pay for</h2>
-                        <p class="text-slate-600 mb-6">Your cart is empty. Add products before checkout.</p>
-                        <a href="{% url 'scanner' %}" class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 font-semibold shadow-md shadow-emerald-200">
-                            <i data-lucide="scan-line" class="w-4 h-4"></i>
-                            Go to Scanner
+                        <h2 class="text-3xl font-bold text-brand-text mb-3">No pending payments</h2>
+                        <p class="text-brand-muted text-lg mb-8 max-w-sm">Your cart is empty. Add products before proceeding to checkout.</p>
+                        <a href="{% url 'scanner' %}" class="w-full max-w-sm">
+                            <button class="w-full h-16 rounded-full border-2 border-brand-accent/50 text-brand-primary hover:bg-white bg-white/50 flex items-center justify-center font-bold text-lg transition-colors">
+                                <i data-lucide="scan-line" class="mr-2 h-6 w-6"></i>
+                                Go to Scanner
+                            </button>
                         </a>
                     </div>
                 `;
             } else {
                 container.innerHTML = `
-                    <div class="bg-white/85 backdrop-blur-md sticky top-0 z-20 border-b border-slate-200/80">
-                        <div class="max-w-3xl mx-auto flex items-center justify-between p-4">
-                            <a href="{% url 'cart' %}" class="text-slate-700 p-2 hover:bg-slate-100 rounded-full transition-colors" aria-label="Back to cart">
-                                <i data-lucide="arrow-left" class="h-5 w-5"></i>
+                    <div class="bg-white/60 backdrop-blur-2xl sticky top-0 z-20 border-b border-white">
+                        <div class="max-w-3xl mx-auto flex items-center justify-between p-4 px-6">
+                            <a href="{% url 'cart' %}" class="text-brand-muted p-2 hover:bg-brand-highlight rounded-full transition-colors" aria-label="Back to cart">
+                                <i data-lucide="arrow-left" class="h-6 w-6"></i>
                             </a>
-                            <h1 class="font-bold text-lg text-slate-900">Payment</h1>
-                            <div class="w-9"></div>
+                            <h1 class="font-bold text-xl text-brand-text">Checkout</h1>
+                            <div class="w-10"></div>
                         </div>
                     </div>
 
-                    <div class="max-w-3xl w-full mx-auto px-4 py-4 md:py-6">
-                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-200 fade-in-up">
-                            <p class="text-emerald-100 text-sm uppercase tracking-wide">Total Amount</p>
-                            <p class="text-3xl md:text-4xl font-extrabold mt-1">${formatAmount(total)}</p>
-                            <p class="text-emerald-100 text-sm mt-2">Includes ${formatAmount(tax)} GST</p>
+                    <div class="max-w-3xl w-full mx-auto px-4 py-8 flex-1">
+                        <!-- Total Amount Card -->
+                        <div class="bg-gradient-to-br from-brand-primary to-brand-accent rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl shadow-brand-accent/20 transition-all text-center">
+                            <p class="text-emerald-50 text-sm md:text-base uppercase tracking-widest font-semibold mb-2">Total Payable Amount</p>
+                            <p class="text-5xl md:text-6xl font-extrabold tracking-tight">${formatAmount(total)}</p>
+                            <div class="inline-block mt-4 px-4 py-1.5 rounded-full bg-black/10 backdrop-blur-md">
+                                <p class="text-emerald-50 text-sm font-medium">Includes ${formatAmount(tax)} GST</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex-1 overflow-auto max-w-3xl w-full mx-auto px-4 pb-4 fade-in-up delay-200">
-                        <h2 class="font-semibold text-slate-900 mb-3">Choose Payment Method</h2>
-                        <div class="space-y-3">
-                            <div onclick="setMethod('upi')" class="payment-option ${paymentMethod === 'upi' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                                    <i data-lucide="smartphone" class="w-6 h-6 text-slate-700"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-slate-900">UPI</h3>
-                                    <p class="text-xs text-slate-600">Google Pay, PhonePe, Paytm</p>
-                                </div>
-                            </div>
-
-                            <div onclick="setMethod('card')" class="payment-option ${paymentMethod === 'card' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                                    <i data-lucide="credit-card" class="w-6 h-6 text-slate-700"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-slate-900">Card</h3>
-                                    <p class="text-xs text-slate-600">Credit or Debit Card</p>
-                                </div>
-                            </div>
-
-                            <div onclick="setMethod('wallet')" class="payment-option ${paymentMethod === 'wallet' ? 'selected' : ''} glass-card p-4 rounded-2xl border-2 border-slate-100 cursor-pointer transition-all flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                                    <i data-lucide="wallet" class="w-6 h-6 text-slate-700"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-slate-900">Wallet</h3>
-                                    <p class="text-xs text-slate-600">Paytm, Amazon Pay</p>
+                        <!-- Order Summary -->
+                        <div class="mt-10">
+                            <h2 class="font-bold text-xl text-brand-text mb-5 tracking-tight px-2">Order Summary</h2>
+                            <div class="bg-white/50 backdrop-blur-xl rounded-[2rem] border border-white overflow-hidden">
+                                ${cart.map(item => `
+                                    <div class="flex items-center justify-between px-6 py-4 border-b border-brand-highlight/50 last:border-0">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-semibold text-brand-text truncate">${item.name}</p>
+                                            <p class="text-sm text-brand-muted mt-0.5">Qty: ${item.quantity}</p>
+                                        </div>
+                                        <p class="font-bold text-brand-text ml-4">${formatAmount(item.price * item.quantity)}</p>
+                                    </div>
+                                `).join('')}
+                                <div class="bg-brand-highlight/30 px-6 py-4">
+                                    <div class="flex justify-between text-brand-muted font-medium text-sm">
+                                        <span>Subtotal (${itemCount} items)</span>
+                                        <span>${formatAmount(subtotal)}</span>
+                                    </div>
+                                    <div class="flex justify-between text-brand-muted font-medium text-sm mt-2">
+                                        <span>GST (18%)</span>
+                                        <span>${formatAmount(tax)}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        ${paymentMethod === 'upi' ? `
-                            <div class="mt-4 fade-in">
-                                <input
-                                    type="text"
-                                    placeholder="Enter UPI ID (e.g. name@upi)"
-                                    value="${upiId}"
-                                    oninput="handleUpiInput(this)"
-                                    class="w-full h-12 px-4 rounded-xl border-2 border-slate-200 bg-white/90 focus:border-emerald-500 outline-none transition-colors"
-                                />
+                        <!-- Payment Info -->
+                        <div class="mt-8 mb-4 bg-white/40 backdrop-blur-xl rounded-[2rem] border border-white p-6">
+                            <div class="flex items-start gap-3 mb-4 text-left">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-brand-text font-bold text-sm">Test Mode Active</p>
+                                    <p class="text-brand-muted text-xs leading-relaxed">
+                                        Use Card: <code class="bg-amber-100 px-1 rounded">4111 1111 1111 1111</code><br>
+                                        Use any future date & CVV to test successfully.
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="text-brand-muted text-xs font-medium border-t border-brand-highlight/30 pt-4">
+                                Securely process your payment using Razorpay's encrypted gateway.
+                            </p>
+                        </div>
+
+
+                        ${payError ? `
+                            <div class="mt-6 bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-2xl text-sm font-medium flex items-center gap-3">
+                                <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+                                ${payError}
                             </div>
                         ` : ''}
 
-                        <div class="flex items-center gap-2 mt-6 text-slate-600">
-                            <i data-lucide="shield" class="w-4 h-4"></i>
-                            <span class="text-xs">256-bit SSL encrypted payment</span>
+                        <div class="flex flex-col items-center gap-2 mt-8 text-brand-muted">
+                            <i data-lucide="shield-check" class="w-8 h-8 text-brand-accent opacity-50"></i>
+                            <span class="text-xs font-semibold uppercase tracking-widest">Secured by Razorpay</span>
                         </div>
                     </div>
 
-                    <div class="bg-white/90 backdrop-blur-md border-t border-slate-200 p-4">
-                        <div class="max-w-3xl mx-auto">
-                            <button
-                                onclick="handlePayment()"
-                                class="w-full h-14 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-semibold shadow-lg shadow-emerald-200 transition-all flex items-center justify-center disabled:opacity-60 disabled:shadow-none"
-                                ${paymentMethod === 'upi' && !upiId.trim() ? 'disabled' : ''}
-                            >
-                                Pay ${formatAmount(total)}
-                            </button>
-                        </div>
+                    <!-- Fixed Bottom Action Bar -->
+                    <div class="bg-white/80 backdrop-blur-2xl border-t border-white p-6 md:p-8 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,108,73,0.05)] mt-auto w-full max-w-3xl mx-auto">
+                        <button
+                            onclick="handlePayment()"
+                            id="pay-button"
+                            class="w-full h-16 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xl font-bold shadow-xl shadow-brand-accent/30 transition-all flex items-center justify-center group active:scale-[0.98]"
+                        >
+                            <span id="pay-text">Pay ${formatAmount(total)}</span>
+                            <i data-lucide="arrow-right" class="w-6 h-6 ml-3 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-4 group-hover:translate-x-0"></i>
+                        </button>
                     </div>
                 `;
             }
@@ -178,83 +205,144 @@
             lucide.createIcons();
         }
 
-        window.setMethod = (m) => {
-            paymentMethod = m;
-            render();
-        };
-
-        window.handleUpiInput = (el) => {
-            upiId = el.value;
-            const btn = document.querySelector('button[onclick="handlePayment()"]');
-            if (!btn || paymentMethod !== 'upi') return;
-            if (upiId.trim()) {
-                btn.removeAttribute('disabled');
-            } else {
-                btn.setAttribute('disabled', 'true');
-            }
-        };
-
         window.handlePayment = async () => {
-            if (paymentMethod === 'upi' && !upiId.trim()) return;
+            if (cart.length === 0 || isProcessing) return;
 
-            isProcessing = true;
-            render();
+            const payBtn = document.getElementById('pay-button');
+            if (payBtn) payBtn.disabled = true;
 
-            await new Promise(r => setTimeout(r, 2000));
+            if (!razorpayKeyId || razorpayKeyId.trim() === '') {
+                payError = 'Razorpay credentials not loaded! Please completely stop and restart your Python server (Ctrl+C then python manage.py runserver) to load the new .env file.';
+                render();
+                return;
+            }
 
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const tax = subtotal * 0.18;
             const total = subtotal + tax;
 
-            const phone = localStorage.getItem('mart_genie_phone') || '9999999999';
-            const orderId = 'MG' + Date.now().toString().slice(-8);
-            const qrData = `MARTGENIE:${orderId}:${Date.now()}`;
+            payError = '';
+            isProcessing = true;
+            render();
 
-            const order = {
-                orderId,
-                total,
-                items: cart,
-                timestamp: new Date().toISOString(),
-                qrData,
-                customer_phone: phone,
-                created_date: new Date().toISOString(),
-                gate_pass_used: false,
-                payment_status: 'completed'
-            };
-
-            // Send to Backend
             try {
-                const response = await fetch("{% url 'create_order' %}", {
+                // Step 1: Create Razorpay order on backend
+                const orderResponse = await fetch("{% url 'create_razorpay_order' %}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': '{{ csrf_token }}'
                     },
-                    body: JSON.stringify(order)
+                    body: JSON.stringify({ amount: total.toFixed(2) })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Failed to create order');
+                const orderData = await orderResponse.json();
+
+                if (orderData.status !== 'success') {
+                    throw new Error(orderData.message || 'Failed to create payment order');
                 }
+
+                isProcessing = false;
+                render();
+
+                // Step 2: Open Razorpay Checkout Modal
+                const options = {
+                    key: razorpayKeyId,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'MartGenie',
+                    description: `Order for ${cart.length} item(s)`,
+                    order_id: orderData.order_id,
+                    handler: async function (response) {
+                        // Step 3: Verify payment on backend
+                        isProcessing = true;
+                        render();
+
+                        const orderId = 'MG' + Date.now().toString().slice(-8);
+                        const qrData = `MARTGENIE:${orderId}:${Date.now()}`;
+
+                        try {
+                            const verifyResponse = await fetch("{% url 'verify_razorpay_payment' %}", {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    items: cart,
+                                    orderId: orderId,
+                                    qrData: qrData
+                                })
+                            });
+
+                            const verifyData = await verifyResponse.json();
+
+                            if (verifyData.status !== 'success') {
+                                throw new Error(verifyData.message || 'Payment verification failed');
+                            }
+
+                            // Save order locally
+                            const order = {
+                                orderId: verifyData.order_id,
+                                total,
+                                items: cart,
+                                timestamp: new Date().toISOString(),
+                                qrData,
+                                payment_status: 'completed',
+                                razorpay_payment_id: response.razorpay_payment_id
+                            };
+
+                            localStorage.setItem('mart_genie_last_order', JSON.stringify(order));
+                            const allOrders = JSON.parse(localStorage.getItem('mart_genie_all_orders') || '[]');
+                            allOrders.unshift(order);
+                            localStorage.setItem('mart_genie_all_orders', JSON.stringify(allOrders));
+                            localStorage.removeItem('mart_genie_cart');
+
+                            isSuccess = true;
+                            isProcessing = false;
+                            render();
+
+                            setTimeout(() => {
+                                window.location.href = "{% url 'gatepass' %}";
+                            }, 2000);
+
+                        } catch (verifyErr) {
+                            isProcessing = false;
+                            payError = verifyErr.message || 'Payment verification failed. Contact support.';
+                            render();
+                        }
+                    },
+                    prefill: {
+                        contact: localStorage.getItem('mart_genie_phone') || ''
+                    },
+                    theme: {
+                        color: '#006c49'
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            isProcessing = false;
+                            payError = '';
+                            render();
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response) {
+                    isProcessing = false;
+                    payError = response.error.description || 'Payment failed. Please try again.';
+                    render();
+                });
+                rzp.open();
+
             } catch (error) {
-                console.error('Error creating order:', error);
-                // Continue for demo purposes, but ideally show error
+                isProcessing = false;
+                payError = error.message || 'Something went wrong. Please try again.';
+                render();
             }
-
-            localStorage.setItem('mart_genie_last_order', JSON.stringify(order));
-
-            const allOrders = JSON.parse(localStorage.getItem('mart_genie_all_orders') || '[]');
-            allOrders.unshift(order);
-            localStorage.setItem('mart_genie_all_orders', JSON.stringify(allOrders));
-
-            localStorage.removeItem('mart_genie_cart');
-
-            isSuccess = true;
-            render();
-
-            setTimeout(() => {
-                window.location.href = "{% url 'gatepass' %}";
-            }, 2000);
         };
     </script>
 </body>

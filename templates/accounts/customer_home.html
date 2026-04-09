@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - MartGenie Customer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#64748b',
+                            primary: '#006c49', accent: '#10b981', highlight: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-brand-base text-brand-text relative overflow-x-hidden font-sans pb-24">
+
+    <!-- Soft background -->
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-20 px-5 pt-8 pb-4 flex items-center justify-between bg-brand-base/80 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-sm overflow-hidden">
+                <img id="nav-user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ request.user.username|default:'MartgenieUser' }}&backgroundColor=0284c7" alt="Avatar" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <p class="text-xs text-brand-muted">Good Morning,</p>
+                <h1 class="font-bold text-lg text-brand-text leading-none">{{ request.user.first_name|default:request.user.phone_number }}</h1>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 px-5 pt-4 pb-10 max-w-xl mx-auto w-full z-10 space-y-8 relative">
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-medium">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Banner / CTA -->
+        <div class="relative bg-gradient-to-br from-brand-primary to-brand-accent rounded-[2rem] p-6 text-white shadow-lg overflow-hidden group">
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-110 transition-transform"></div>
+            <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-black/10 rounded-full blur-xl group-hover:scale-110 transition-transform"></div>
+            <div class="relative z-10 flex flex-col items-start gap-4">
+                <div>
+                    <h2 class="text-2xl font-black mb-1">Ready to shop?</h2>
+                    <p class="text-white/80 text-sm font-medium">Scan the store QR code to begin your seamless checkout experience.</p>
+                </div>
+                <!-- Scan Button -->
+                <a href="{% url 'scanner' %}" class="bg-white text-brand-primary font-bold py-3 px-6 rounded-full shadow-md flex items-center gap-2 hover:bg-white/90 active:scale-95 transition-all w-fit">
+                    <i data-lucide="scan-line" class="w-5 h-5 text-brand-accent"></i>
+                    Scan to Enter
+                </a>
+            </div>
+        </div>
+
+        <!-- Weekly Highlights / Promos -->
+        {% if promotions %}
+        <div>
+            <h3 class="font-bold text-lg text-brand-text mb-4">Weekly Offers</h3>
+            <div class="grid grid-cols-2 gap-4">
+                {% for offer in promotions %}
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-50 relative overflow-hidden flex flex-col justify-between h-32 transition-transform active:scale-95 group">
+                    <div class="absolute right-0 top-0 w-16 h-16 opacity-10 rounded-bl-[2rem] transition-transform group-hover:scale-110" style="background-color: {{ offer.color_hex }}"></div>
+                    <i data-lucide="{{ offer.icon }}" class="w-6 h-6 mb-2" style="color: {{ offer.color_hex }}"></i>
+                    <div>
+                        <p class="font-bold text-brand-text text-sm mb-0.5">{{ offer.title }}</p>
+                        <p class="text-[10px] text-brand-muted">{{ offer.subtitle }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Nearby Stores List -->
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg text-brand-text">Nearby Stores</h3>
+                <a href="#" class="text-xs font-bold text-brand-primary hover:text-brand-accent">View Map</a>
+            </div>
+            
+            <div class="space-y-3">
+                {% if stores %}
+                    {% for store in stores %}
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-50 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-brand-primary border border-slate-100">
+                                <i data-lucide="store" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-brand-text text-sm">{{ store.name }}</p>
+                                <p class="text-xs text-brand-muted mt-0.5">Code: {{ store.store_code }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-md">
+                                <i data-lucide="door-open" class="w-3 h-3"></i> Open
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-50 text-center">
+                        <p class="text-sm text-brand-muted font-medium">No stores available nearby.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 backdrop-blur-md z-40 pb-safe">
+        <div class="flex items-center justify-between px-6 py-2 max-w-xl mx-auto h-16">
+            <a href="{% url 'customer_home' %}" class="flex flex-col items-center gap-1 min-w-[60px] bg-brand-accent/15 text-brand-primary py-2 px-4 rounded-2xl transition-colors">
+                <i data-lucide="home" class="w-5 h-5 fill-brand-primary"></i>
+                <span class="text-[9px] font-bold tracking-wide">HOME</span>
+            </a>
+            <a href="{% url 'customer_orders' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="receipt" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">ORDERS</span>
+            </a>
+            <a href="{% url 'scanner' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="store" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">STORE</span>
+            </a>
+            <a href="{% url 'customer_profile' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">PROFILE</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" class="fixed inset-0 z-50 hidden bg-[#191c1e]/80 backdrop-blur-md p-4 flex items-center justify-center">
+        <div class="w-full max-w-md rounded-[2.5rem] bg-white overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-8 py-6 border-b border-gray-100">
+                <h3 class="font-bold text-xl text-brand-text tracking-tight">Scan Store QR</h3>
+                <button type="button" onclick="closeQrScanner()" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6 text-brand-muted"></i>
+                </button>
+            </div>
+
+            <div class="p-8">
+                <div class="rounded-3xl overflow-hidden bg-black aspect-square relative shadow-inner">
+                    <video id="qr-video" class="w-full h-full object-cover" autoplay muted playsinline></video>
+                    <div class="absolute inset-0 pointer-events-none">
+                        <div class="absolute inset-12 border-[3px] border-white/50 rounded-3xl"></div>
+                    </div>
+                </div>
+
+                <p id="qr-status" class="text-base text-brand-muted mt-6 text-center font-medium">Point your camera at the store QR code.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script>
+        let qrStream = null;
+        let qrScanActive = false;
+        let qrScanRaf = null;
+        const qrCanvas = document.createElement("canvas");
+        const qrContext = qrCanvas.getContext("2d", { willReadFrequently: true });
+
+        function initAvatar() {
+            const savedAvatar = localStorage.getItem('mg_avatar_seed');
+            const seed = savedAvatar || '{{ request.user.username|default:"MartgenieUser" }}';
+            const imgEl = document.getElementById('nav-user-avatar');
+            if (imgEl) {
+                imgEl.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=0284c7`;
+            }
+        }
+        initAvatar();
+
+        function setQrStatus(text, isError = false) {
+            const status = document.getElementById('qr-status');
+            status.textContent = text;
+            status.className = `text-base mt-6 text-center font-medium ${isError ? 'text-red-600' : 'text-brand-muted'}`;
+        }
+        async function validateStoreQr(rawValue) {
+            const scannedValue = (rawValue || '').trim().toUpperCase();
+            if (!scannedValue) {
+                setQrStatus('Please scan a valid QR code.', true);
+                return false;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'customer_home' %}";
+
+            const csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = '{{ csrf_token }}';
+            form.appendChild(csrf);
+
+            const action = document.createElement('input');
+            action.type = 'hidden';
+            action.name = 'action';
+            action.value = 'verify_store';
+            form.appendChild(action);
+
+            const code = document.createElement('input');
+            code.type = 'hidden';
+            code.name = 'store_code';
+            code.value = scannedValue;
+            form.appendChild(code);
+
+            document.body.appendChild(form);
+            form.submit();
+
+            closeQrScanner();
+            return true;
+        }
+
+        async function scanQrFrame() {
+            if (!qrScanActive) return;
+            const video = document.getElementById('qr-video');
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                qrCanvas.height = video.videoHeight;
+                qrCanvas.width = video.videoWidth;
+                qrContext.drawImage(video, 0, 0, qrCanvas.width, qrCanvas.height);
+                const imageData = qrContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+
+                if (code && code.data) {
+                    const isValid = await validateStoreQr(code.data);
+                    if (isValid) return;
+                }
+            }
+            qrScanRaf = requestAnimationFrame(scanQrFrame);
+        }
+
+        window.openQrScanner = async () => {
+            const modal = document.getElementById('qr-scanner-modal');
+            const video = document.getElementById('qr-video');
+            modal.classList.remove('hidden');
+            setQrStatus('Requesting camera access...');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setQrStatus('Camera not supported on this device.', true);
+                return;
+            }
+
+            try {
+                qrStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+
+                video.srcObject = qrStream;
+                video.setAttribute("playsinline", true);
+                await video.play();
+
+                qrScanActive = true;
+                setQrStatus('Camera active. Point at store QR code.');
+                qrScanRaf = requestAnimationFrame(scanQrFrame);
+            } catch (error) {
+                setQrStatus('Camera access denied. Allow camera permission.', true);
+            }
+        };
+
+        window.closeQrScanner = () => {
+            qrScanActive = false;
+            if (qrScanRaf) {
+                cancelAnimationFrame(qrScanRaf);
+                qrScanRaf = null;
+            }
+
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+
+            const video = document.getElementById('qr-video');
+            video.srcObject = null;
+
+            const modal = document.getElementById('qr-scanner-modal');
+            modal.classList.add('hidden');
+            setQrStatus('Point your camera at the store QR code.');
+        };
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

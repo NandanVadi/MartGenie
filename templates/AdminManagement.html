@@ -4,114 +4,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Management - MartGenie</title>
+    <title>Admin Settings - MartGenie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#64748b',
+                            primary: '#006c49', accent: '#10b981', highlight: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="min-h-screen text-slate-800 relative overflow-x-hidden bg-slate-50">
-    <div class="pointer-events-none fixed -top-24 -left-20 w-80 h-80 rounded-full bg-teal-200/35 blur-3xl"></div>
-    <div class="pointer-events-none fixed -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl"></div>
+<body class="min-h-screen text-brand-text bg-brand-base relative overflow-x-hidden font-sans">
+    
+    <!-- Soft background -->
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
 
-    <div class="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+    <!-- Header -->
+    <header class="bg-white sticky top-0 z-20 border-b border-slate-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <a href="{% url 'dashboard' %}" class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
-                    <i data-lucide="arrow-left" class="w-5 h-5 text-slate-700"></i>
+                <a href="{% url 'dashboard' %}" class="w-9 h-9 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors">
+                    <i data-lucide="arrow-left" class="w-4 h-4 text-brand-text"></i>
                 </a>
-                <span class="font-extrabold text-xl text-slate-900">Admin <span class="text-emerald-600">Management</span></span>
+                <h1 class="font-bold text-xl text-brand-text">
+                    Admin <span class="text-brand-primary">Settings</span>
+                </h1>
+            </div>
+            <div class="bg-emerald-50 px-3 py-1 rounded-full flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-xs font-medium text-emerald-700">Online</span>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="max-w-5xl mx-auto px-4 md:px-6 py-8 relative z-10">
+    <div class="max-w-5xl mx-auto px-6 py-8 relative z-10">
         
         <div id="alert-container" class="mb-6 hidden"></div>
 
         {% if stores|length == 0 %}
-        <div class="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50 flex items-start gap-3 fade-in-up shadow-sm">
-            <i data-lucide="info" class="w-5 h-5 text-blue-500 mt-0.5"></i>
+        <div class="mb-6 p-5 rounded-xl bg-blue-50 flex items-start gap-3">
+            <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+            </div>
             <div>
-                <h3 class="font-bold text-blue-800">Welcome to MartGenie!</h3>
-                <p class="text-sm text-blue-700 mt-1">To get started, please add your first store below. Once your store is created, you can assign security staff and begin viewing analytics on your dashboard.</p>
+                <h3 class="font-semibold text-blue-900">Getting Started</h3>
+                <p class="text-sm text-blue-700 mt-0.5">Create a store first, then you can add security staff to it.</p>
             </div>
         </div>
         {% endif %}
 
         <div class="grid md:grid-cols-2 gap-6">
             
-
-
             <!-- Add Store Form -->
-            <div class="glass-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col">
+            <div class="bg-white rounded-2xl p-6 shadow-sm">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center text-white shadow-sm">
                         <i data-lucide="store" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">Add New Store</h2>
-                        <p class="text-xs text-slate-500">Create a new branch location</p>
+                        <h2 class="text-lg font-bold text-brand-text">Add Store</h2>
+                        <p class="text-xs text-brand-muted">Create a new store location</p>
                     </div>
                 </div>
                 
-                <form id="add-store-form" class="space-y-4 flex-1 flex flex-col" onsubmit="submitStoreForm(event)">
+                <form id="add-store-form" class="space-y-4" onsubmit="submitStoreForm(event)">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Store Name</label>
-                        <input type="text" name="name" required placeholder="e.g. Downtown Branch" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Store Code</label>
-                        <input type="text" name="store_code" required placeholder="Unique Code (e.g. ST001)" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                        <label class="block text-sm font-medium text-brand-muted mb-1.5">Store Name</label>
+                        <input type="text" name="name" required placeholder="e.g. MartGenie Pune" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Location / Address</label>
-                        <textarea name="location" rows="2" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <label class="block text-sm font-medium text-brand-muted mb-1.5">Store Code</label>
+                        <input type="text" name="store_code" required placeholder="e.g. MG-001" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm font-mono uppercase">
                     </div>
-                    <div class="mt-auto pt-4">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-blue-200 flex items-center justify-center gap-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Add Store
-                        </button>
+                    <div>
+                        <label class="block text-sm font-medium text-brand-muted mb-1.5">Address</label>
+                        <textarea name="location" rows="3" placeholder="Full store address" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm resize-none"></textarea>
                     </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-90 text-white font-semibold h-12 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] text-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Store
+                    </button>
                 </form>
             </div>
 
-            <!-- Assign Security Staff Form (Full Width) -->
-            <div class="glass-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:col-span-2 mt-2">
+            <!-- Add Security Staff Form -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm md:col-span-2">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-sm">
                         <i data-lucide="shield" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900">Create & Assign Security Staff</h2>
-                        <p class="text-xs text-slate-500">Generate guard accounts tied to specific stores</p>
+                        <h2 class="text-lg font-bold text-brand-text">Add Security Staff</h2>
+                        <p class="text-xs text-brand-muted">Create a security guard account for your store</p>
                     </div>
                 </div>
                 
                 <form id="create-security-form" class="space-y-6" onsubmit="submitSecurityForm(event)">
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <!-- Account Info -->
+                    <div class="grid md:grid-cols-2 gap-8">
+                        
+                        <!-- Account Details -->
                         <div class="space-y-4">
-                            <h3 class="text-sm border-b border-slate-100 pb-2 text-slate-500 font-semibold mb-3">Account Details</h3>
+                            <h3 class="text-sm font-semibold text-brand-primary flex items-center gap-2 pb-2 border-b border-slate-100">
+                                <i data-lucide="user" class="w-4 h-4"></i> Account Details
+                            </h3>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Username / Guard ID</label>
-                                <input type="text" name="username" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <label class="block text-sm font-medium text-brand-muted mb-1.5">Username</label>
+                                <input type="text" name="username" required placeholder="Guard's username" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-                                <input type="password" name="password" required minlength="6" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <label class="block text-sm font-medium text-brand-muted mb-1.5">Password</label>
+                                <input type="password" name="password" required minlength="6" placeholder="Create password" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-                                <input type="text" name="phone_number" class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <label class="block text-sm font-medium text-brand-muted mb-1.5">Phone Number</label>
+                                <input type="text" name="phone_number" placeholder="Contact number" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
                             </div>
                         </div>
 
-                        <!-- Assignment Info -->
+                        <!-- Assignment -->
                         <div class="space-y-4">
-                            <h3 class="text-sm border-b border-slate-100 pb-2 text-slate-500 font-semibold mb-3">Assignment Details</h3>
+                            <h3 class="text-sm font-semibold text-blue-500 flex items-center gap-2 pb-2 border-b border-slate-100">
+                                <i data-lucide="map-pin" class="w-4 h-4"></i> Store Assignment
+                            </h3>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Assign to Store</label>
-                                <select name="store_id" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white">
+                                <label class="block text-sm font-medium text-brand-muted mb-1.5">Assign to Store</label>
+                                <select name="store_id" required class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm appearance-none">
                                     <option value="" disabled selected>Select a store...</option>
                                     {% for store in stores %}
                                     <option value="{{ store.id }}">{{ store.name }} ({{ store.store_code }})</option>
@@ -119,50 +150,147 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1">Employee ID Number</label>
-                                <input type="text" name="employee_id" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                <label class="block text-sm font-medium text-brand-muted mb-1.5">Employee ID</label>
+                                <input type="text" name="employee_id" required placeholder="e.g. EMP-001" class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm font-mono uppercase">
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Shift Start</label>
-                                    <input type="time" name="shift_start" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    <label class="block text-sm font-medium text-brand-muted mb-1.5">Shift Start</label>
+                                    <input type="time" name="shift_start" required class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-slate-700 mb-1">Shift End</label>
-                                    <input type="time" name="shift_end" required class="w-full px-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    <label class="block text-sm font-medium text-brand-muted mb-1.5">Shift End</label>
+                                    <input type="time" name="shift_end" required class="w-full h-12 px-4 rounded-xl border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all text-sm">
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="pt-4 border-t border-slate-100 flex justify-end mt-4">
-                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 px-8 text-white font-bold py-3 rounded-xl transition-colors shadow-md shadow-orange-200 flex items-center gap-2">
-                            <i data-lucide="check-circle" class="w-4 h-4"></i> Create & Assign Guard
+                    <div class="pt-4 border-t border-slate-100 flex justify-end">
+                        <button type="submit" class="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:opacity-90 px-8 text-white font-semibold h-12 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] text-sm">
+                            <i data-lucide="shield-plus" class="w-4 h-4"></i> Add Security Staff
                         </button>
-                    </div>
-                </form>
             </div>
 
+            <!-- Existing Stores & QR Codes -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm md:col-span-2">
+                <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 shadow-sm">
+                            <i data-lucide="qr-code" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-brand-text">Store QR Codes</h2>
+                            <p class="text-xs text-brand-muted">Print these for your customers to scan</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for store in stores %}
+                    <div class="bg-brand-base border border-slate-200 rounded-xl p-4 flex items-center justify-between transition-all hover:shadow-md hover:border-brand-primary/30">
+                        <div>
+                            <p class="font-bold text-sm text-brand-text">{{ store.name }}</p>
+                            <p class="text-xs font-mono text-brand-muted mt-1 uppercase">CODE: {{ store.store_code }}</p>
+                        </div>
+                        <button type="button" onclick="showQRCode('{{ store.name|escapejs }}', '{{ store.store_code|escapejs }}')" class="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-brand-text hover:text-brand-primary hover:border-brand-primary transition-all shadow-sm group">
+                            <i data-lucide="qr-code" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                        </button>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-1 md:col-span-full p-6 text-center text-brand-muted border-2 border-dashed border-slate-200 rounded-xl">
+                        <p class="text-sm">No stores available yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center fade-in">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative">
+            <button type="button" onclick="closeQRModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-brand-muted hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="text-center mb-6 mt-2">
+                <h3 id="qr-title" class="font-bold text-lg text-brand-text">Store QR Code</h3>
+                <p class="text-xs text-brand-muted mt-1">Scan to select this store</p>
+            </div>
+            <div class="bg-brand-highlight border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center p-6 mx-auto mb-6 w-full max-w-[260px] aspect-square relative shadow-inner">
+                <div id="qr-container" class="bg-white p-3 rounded-lg shadow-sm"></div>
+            </div>
+            <button type="button" onclick="downloadQR()" class="w-full bg-brand-text hover:bg-black text-white font-semibold h-12 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-[0.98] text-sm">
+                <i data-lucide="download" class="w-4 h-4"></i> Download QR Image
+            </button>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
 
+        function showQRCode(storeName, storeCode) {
+            const modal = document.getElementById('qr-modal');
+            const container = document.getElementById('qr-container');
+            const title = document.getElementById('qr-title');
+            
+            // Clear existing
+            container.innerHTML = '';
+            title.textContent = storeName;
+            
+            // Generate new QR
+            new QRCode(container, {
+                text: storeCode,
+                width: 200,
+                height: 200,
+                colorDark : "#006c49",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeQRModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function downloadQR() {
+            const container = document.getElementById('qr-container');
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            
+            const link = document.createElement('a');
+            link.download = document.getElementById('qr-title').textContent.replace(/ /g, '_') + '_QR.png';
+            
+            if (canvas) {
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            } else if (img && img.src) {
+                link.href = img.src;
+                link.click();
+            }
+        }
+
         function showAlert(message, type = 'success') {
             const container = document.getElementById('alert-container');
             container.classList.remove('hidden');
             
             const isSuccess = type === 'success';
-            const bgClass = isSuccess ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200';
-            const textClass = isSuccess ? 'text-emerald-800' : 'text-rose-800';
-            const icon = isSuccess ? 'check-circle' : 'alert-circle';
-            const iconColor = isSuccess ? 'text-emerald-500' : 'text-rose-500';
-
+            
             container.innerHTML = `
-                <div class="p-4 rounded-xl border border-solid ${bgClass} flex items-center gap-3">
-                    <i data-lucide="${icon}" class="w-5 h-5 ${iconColor}"></i>
-                    <p class="${textClass} font-medium text-sm">${message}</p>
+                <div class="bg-white rounded-xl p-4 flex items-center gap-3 shadow-md border ${isSuccess ? 'border-emerald-100' : 'border-red-100'} fade-in-up">
+                    <div class="w-10 h-10 rounded-lg ${isSuccess ? 'bg-emerald-50' : 'bg-red-50'} flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="${isSuccess ? 'check-circle' : 'alert-circle'}" class="w-5 h-5 ${isSuccess ? 'text-emerald-600' : 'text-red-500'}"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold ${isSuccess ? 'text-brand-text' : 'text-red-600'} text-sm">${isSuccess ? 'Success!' : 'Something went wrong'}</p>
+                        <p class="text-xs ${isSuccess ? 'text-brand-muted' : 'text-red-400'} mt-0.5">${message}</p>
+                    </div>
                 </div>
             `;
             lucide.createIcons();
@@ -174,48 +302,37 @@
 
         async function submitForm(url, formData, formId) {
             try {
-                // Manually grab CSRF token from a cookie if needed, but we can also use @csrf_exempt for simplicity
-                // Since this is a simple Django App that has csrf_exempt applied to its APIs.
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-                
                 const data = await response.json();
                 
                 if (response.ok && data.status === 'success') {
                     showAlert(data.message, 'success');
                     document.getElementById(formId).reset();
                     if (formId === 'add-store-form') {
-                        // Reload page to update the store dropdown
                         setTimeout(() => window.location.reload(), 2000);
                     } else if (formId === 'create-security-form') {
-                        // Automatically bring them back to their newly unlocked dashboard
                         setTimeout(() => window.location.href = "{% url 'dashboard' %}", 2000);
                     }
                 } else {
-                    showAlert(data.message || 'An error occurred', 'error');
+                    showAlert(data.message || 'Please check your inputs and try again.', 'error');
                 }
             } catch (error) {
-                showAlert('Network error. Please try again.', 'error');
+                showAlert('Could not connect. Please check your internet.', 'error');
             }
         }
 
-
-
         function submitStoreForm(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            submitForm("{% url 'add_store_api' %}", formData, 'add-store-form');
+            submitForm("{% url 'add_store_api' %}", new FormData(e.target), 'add-store-form');
         }
 
         function submitSecurityForm(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            submitForm("{% url 'create_security_api' %}", formData, 'create-security-form');
+            submitForm("{% url 'create_security_api' %}", new FormData(e.target), 'create-security-form');
         }
     </script>
 </body>

@@ -3,76 +3,94 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>MartGenie Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <meta charset="UTF-8" />
+    <title>MartGenie - Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#64748b',
+                            primary: '#006c49', accent: '#10b981', highlight: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="min-h-screen flex items-center justify-center px-4 py-10 text-slate-800 relative overflow-hidden">
-  <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-teal-200/40 blur-3xl"></div>
-  <div class="absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/40 blur-3xl"></div>
-  <div
-    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] rounded-full bg-orange-100/25 blur-3xl">
-  </div>
+<body class="min-h-screen flex items-center justify-center px-4 py-10 text-brand-text bg-brand-base relative overflow-hidden font-sans">
+    
+    <!-- Soft background blobs -->
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[35rem] h-[35rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
 
-  <div class="w-full max-w-md p-7 md:p-8 rounded-3xl glass-card relative z-10 fade-in-up">
-    <div class="text-center mb-6">
-      <div
-        class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200 mb-4">
-        <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
-      </div>
-      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
-        Mart<span class="text-emerald-600">Genie</span>
-      </h1>
-      <p class="text-slate-600 mt-2 text-sm">Admin access portal</p>
-    </div>
-
-    <div class="mb-5">
-      <h2 class="text-xl font-bold text-slate-800 mb-1">Login</h2>
-      <p class="text-slate-500 text-sm">Enter your admin credentials to access the dashboard.</p>
-    </div>
-
-    <form id="login-form" class="space-y-3" action="{% url 'staff_login' %}" method="POST">
-      {% csrf_token %}
-      {% if error %}
-      <p class="text-red-500 text-sm text-center">{{ error }}</p>
-      {% endif %}
-      <div>
-        <label for="loginId" class="text-sm font-semibold text-slate-700">User ID</label>
-        <div class="relative mt-1">
-          <i data-lucide="user-round" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-          <input id="loginId" name="username" type="text" placeholder="Enter Admin Username"
-            class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none"
-            required />
+    <div class="w-full max-w-md p-8 sm:p-10 rounded-2xl bg-white shadow-lg shadow-black/5 relative z-10 fade-in-up">
+        
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center shadow-md shadow-brand-accent/20 mb-4">
+                <i data-lucide="store" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-brand-text">
+                Mart<span class="text-brand-primary">Genie</span>
+            </h1>
+            <p class="text-brand-muted text-sm mt-1">Admin Login</p>
         </div>
-      </div>
 
-      <div>
-        <label for="loginPassword" class="text-sm font-semibold text-slate-700">Password</label>
-        <div class="relative mt-1">
-          <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-          <input id="loginPassword" name="password" type="password" placeholder="Enter password"
-            class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none"
-            required />
+        <form id="login-form" class="space-y-4" action="{% url 'staff_login' %}" method="POST">
+            {% csrf_token %}
+            {% if error %}
+            <div class="bg-red-50 rounded-xl p-3 flex items-center gap-3">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 flex-shrink-0"></i>
+                <p class="text-red-600 text-sm font-medium">{{ error }}</p>
+            </div>
+            {% endif %}
+            
+            <div>
+                <label for="loginId" class="block text-sm font-medium text-brand-muted mb-1.5">Username</label>
+                <div class="relative">
+                    <i data-lucide="user" class="w-5 h-5 text-brand-muted/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="loginId" name="username" type="text" placeholder="Enter your username"
+                        class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm"
+                        required />
+                </div>
+            </div>
+
+            <div>
+                <label for="loginPassword" class="block text-sm font-medium text-brand-muted mb-1.5">Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="w-5 h-5 text-brand-muted/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="loginPassword" name="password" type="password" placeholder="Enter your password"
+                        class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm"
+                        required />
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full h-12 mt-2 bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-90 text-white font-semibold rounded-xl shadow-md shadow-brand-accent/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                Log In
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center pt-5 border-t border-slate-100">
+            <p class="text-sm text-brand-muted">New here? <a href="{% url 'admin_register' %}" class="text-brand-primary font-semibold hover:text-brand-accent transition-colors">Create Account</a></p>
         </div>
-      </div>
-
-      <button type="submit"
-        class="w-full h-12 mt-2 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition shadow-lg shadow-emerald-200">Continue</button>
-    </form>
-
-    <div class="mt-6 text-center text-sm">
-      <p class="text-slate-600">Don't have an account? <a href="{% url 'admin_register' %}" class="text-emerald-600 font-bold hover:underline transition-colors">Create Admin Account</a></p>
     </div>
-  </div>
 
-  <script>
-    lucide.createIcons();
-  </script>
-
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>

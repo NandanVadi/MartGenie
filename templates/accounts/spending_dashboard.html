@@ -1,0 +1,237 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Spending - MartGenie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#64748b',
+                            primary: '#006c49', accent: '#10b981', highlight: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="min-h-screen flex flex-col bg-brand-base text-brand-text relative overflow-x-hidden font-sans pb-20">
+
+    <!-- Soft background -->
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[30rem] h-[30rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
+
+    <!-- Header -->
+    <header class="bg-white sticky top-0 z-20 border-b border-slate-100 px-5 py-3.5 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'customer_profile' %}" class="w-9 h-9 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-brand-text"></i>
+            </a>
+            <div>
+                <h1 class="font-bold text-lg text-brand-text leading-none">My Spending</h1>
+                <p class="text-xs text-brand-muted mt-0.5">{{ request.user.username }}</p>
+            </div>
+        </div>
+        <a href="{% url 'customer_logout' %}" class="flex items-center justify-center w-9 h-9 bg-slate-50 hover:bg-slate-100 text-brand-muted rounded-lg transition-colors">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+        </a>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 p-5 max-w-xl mx-auto w-full z-10 space-y-5 relative">
+
+        <!-- Total Summary Card -->
+        <div class="bg-gradient-to-br from-brand-primary to-brand-accent rounded-2xl p-6 text-white shadow-lg shadow-brand-accent/20 fade-in-up">
+            <p class="text-sm text-white/80 mb-1">Total Spent</p>
+            <p class="text-3xl font-bold mb-4">Rs {{ total_spent|floatformat:2 }}</p>
+            <div class="flex gap-6">
+                <div>
+                    <p class="text-2xl font-bold">{{ total_orders }}</p>
+                    <p class="text-xs text-white/70">Orders</p>
+                </div>
+                <div class="w-px bg-white/20"></div>
+                <div>
+                    <p class="text-2xl font-bold">{{ stores_visited }}</p>
+                    <p class="text-xs text-white/70">Stores Visited</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Spending Chart -->
+        {% if monthly_labels != "[]" %}
+        <div class="bg-white rounded-2xl p-5 shadow-sm fade-in-up">
+            <h2 class="font-bold text-base text-brand-text mb-4 flex items-center gap-2">
+                <i data-lucide="trending-up" class="w-4 h-4 text-brand-primary"></i> Monthly Spending
+            </h2>
+            <div class="relative h-40" id="chart-container">
+                <canvas id="spending-chart"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Store-by-Store Breakdown -->
+        {% if store_analytics %}
+        <div class="fade-in-up">
+            <h2 class="font-bold text-base text-brand-text mb-3 flex items-center gap-2">
+                <i data-lucide="store" class="w-4 h-4 text-brand-primary"></i> Spending by Store
+            </h2>
+            <div class="space-y-3">
+                {% for store in store_analytics %}
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <h3 class="font-semibold text-brand-text">{{ store.name }}</h3>
+                            {% if store.last_visit %}
+                            <p class="text-xs text-brand-muted mt-0.5">Last visited {{ store.last_visit|date:"M d, Y" }}</p>
+                            {% endif %}
+                        </div>
+                        <span class="text-lg font-bold text-brand-primary">Rs {{ store.total_spent|floatformat:0 }}</span>
+                    </div>
+
+                    <div class="flex gap-4 text-xs text-brand-muted mb-3">
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="shopping-bag" class="w-3 h-3"></i> {{ store.order_count }} orders
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <i data-lucide="calculator" class="w-3 h-3"></i> Avg Rs {{ store.avg_order|floatformat:0 }}
+                        </span>
+                    </div>
+
+                    <!-- Spending bar -->
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-brand-primary to-brand-accent h-2 rounded-full transition-all duration-500" style="width: {{ store.percentage }}%"></div>
+                    </div>
+                    <p class="text-[10px] text-brand-muted mt-1 text-right">{{ store.percentage }}% of total spending</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Top Products -->
+        {% if top_products %}
+        <div class="fade-in-up">
+            <h2 class="font-bold text-base text-brand-text mb-3 flex items-center gap-2">
+                <i data-lucide="star" class="w-4 h-4 text-brand-primary"></i> Most Bought Items
+            </h2>
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                {% for product in top_products %}
+                <div class="flex items-center justify-between px-4 py-3 {% if not forloop.last %}border-b border-slate-50{% endif %}">
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg bg-brand-accent/10 text-brand-primary flex items-center justify-center text-xs font-bold">{{ forloop.counter }}</span>
+                        <div>
+                            <p class="text-sm font-medium text-brand-text">{{ product.product_name }}</p>
+                            <p class="text-xs text-brand-muted">Bought {{ product.times_bought }}x</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-semibold text-brand-text">Rs {{ product.total_spent|floatformat:0 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Empty state -->
+        {% if total_orders == 0 %}
+        <div class="text-center py-14 bg-white rounded-2xl shadow-sm fade-in-up">
+            <div class="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="bar-chart-3" class="w-8 h-8 text-brand-muted/40"></i>
+            </div>
+            <p class="text-brand-text font-bold text-lg">No Spending Data</p>
+            <p class="text-sm text-brand-muted mt-1">Complete an order to see your spending breakdown.</p>
+            <a href="{% url 'scanner' %}" class="inline-flex mt-5 bg-gradient-to-r from-brand-primary to-brand-accent text-white font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition items-center gap-2 text-sm">
+                <i data-lucide="scan-line" class="w-4 h-4"></i> Start Shopping
+            </a>
+        </div>
+        {% endif %}
+
+    </main>
+    
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 backdrop-blur-md z-40 pb-safe">
+        <div class="flex items-center justify-between px-6 py-2 max-w-xl mx-auto h-16">
+            <a href="{% url 'customer_home' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">HOME</span>
+            </a>
+            <a href="{% url 'customer_orders' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="receipt" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">ORDERS</span>
+            </a>
+            <a href="{% url 'scanner' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="store" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">STORE</span>
+            </a>
+            <a href="{% url 'customer_profile' %}" class="flex flex-col items-center gap-1 min-w-[60px] text-brand-muted hover:text-brand-primary transition-colors">
+                <i data-lucide="user" class="w-5 h-5"></i>
+                <span class="text-[9px] font-bold tracking-wide">PROFILE</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Simple bar chart using canvas (no external library needed) -->
+    <script>
+        lucide.createIcons();
+        
+        const labels = {{ monthly_labels|safe }};
+        const values = {{ monthly_values|safe }};
+        
+        if (labels.length > 0) {
+            const canvas = document.getElementById('spending-chart');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('chart-container');
+            
+            canvas.width = container.offsetWidth;
+            canvas.height = 160;
+            
+            const maxVal = Math.max(...values, 1);
+            const barWidth = (canvas.width - 40) / labels.length - 8;
+            const chartHeight = 120;
+            
+            // Draw bars
+            values.forEach((val, i) => {
+                const barHeight = (val / maxVal) * chartHeight;
+                const x = 30 + i * (barWidth + 8);
+                const y = chartHeight - barHeight + 10;
+                
+                // Bar gradient
+                const grad = ctx.createLinearGradient(x, y, x, chartHeight + 10);
+                grad.addColorStop(0, '#10b981');
+                grad.addColorStop(1, '#006c49');
+                
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
+                ctx.fill();
+                
+                // Value label
+                ctx.fillStyle = '#191c1e';
+                ctx.font = '600 10px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                if (val > 0) {
+                    ctx.fillText('₹' + Math.round(val), x + barWidth / 2, y - 5);
+                }
+                
+                // Month label
+                ctx.fillStyle = '#64748b';
+                ctx.font = '500 9px Inter, sans-serif';
+                ctx.fillText(labels[i].split(' ')[0], x + barWidth / 2, chartHeight + 25);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,70 +1,92 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <title>Create Admin Account - MartGenie</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#64748b',
+                            primary: '#006c49', accent: '#10b981', highlight: '#f1f5f9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="min-h-screen flex items-center justify-center px-4 py-10 text-slate-800 relative overflow-hidden bg-slate-50">
-    <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-teal-200/40 blur-3xl"></div>
-    <div class="absolute -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/40 blur-3xl"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] rounded-full bg-orange-100/25 blur-3xl"></div>
+<body class="min-h-screen flex items-center justify-center px-4 py-10 text-brand-text bg-brand-base relative overflow-hidden font-sans">
+    
+    <div class="fixed top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-brand-accent/10 blur-[100px] pointer-events-none -z-10"></div>
+    <div class="fixed bottom-[-10%] right-[-10%] w-[35rem] h-[35rem] rounded-full bg-teal-400/8 blur-[100px] pointer-events-none -z-10"></div>
 
-    <div class="w-full max-w-md p-7 md:p-8 rounded-3xl glass-card relative z-10 fade-in-up">
-        <div class="text-center mb-6">
-            <div class="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200 mb-4">
-                <i data-lucide="shield-plus" class="w-8 h-8 text-white"></i>
+    <div class="w-full max-w-md p-8 sm:p-10 rounded-2xl bg-white shadow-lg shadow-black/5 relative z-10 fade-in-up">
+        
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 rounded-xl bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center shadow-md shadow-brand-accent/20 mb-4">
+                <i data-lucide="user-plus" class="w-8 h-8 text-white"></i>
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Mart<span class="text-emerald-600">Genie</span></h1>
-        </div>
-
-        <div class="mb-5 text-center">
-            <h2 class="text-xl font-bold text-slate-800 mb-1">Create Admin Account</h2>
-            <p class="text-slate-500 text-sm">Register a new system administrator.</p>
+            <h1 class="text-2xl font-bold text-brand-text">
+                Mart<span class="text-brand-primary">Genie</span>
+            </h1>
+            <p class="text-brand-muted text-sm mt-1">Create Admin Account</p>
         </div>
 
         <form id="register-form" class="space-y-4" action="{% url 'admin_register' %}" method="POST">
             {% csrf_token %}
             {% if error %}
-            <p class="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg border border-red-100">{{ error }}</p>
+            <div class="bg-red-50 rounded-xl p-3 flex items-center gap-3">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 flex-shrink-0"></i>
+                <p class="text-red-600 text-sm font-medium">{{ error }}</p>
+            </div>
             {% endif %}
             
             <div>
-                <label for="regId" class="text-sm font-semibold text-slate-700">Username</label>
-                <div class="relative mt-1">
-                    <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-                    <input id="regId" name="username" type="text" placeholder="Choose an Admin ID" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none" required />
+                <label for="regId" class="block text-sm font-medium text-brand-muted mb-1.5">Username</label>
+                <div class="relative">
+                    <i data-lucide="user" class="w-5 h-5 text-brand-muted/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="regId" name="username" type="text" placeholder="Choose a username" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm" required />
                 </div>
             </div>
 
             <div>
-                <label for="regPhone" class="text-sm font-semibold text-slate-700">Phone Number</label>
-                <div class="relative mt-1">
-                    <i data-lucide="phone" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-                    <input id="regPhone" name="phone_number" type="tel" pattern="[0-9]+" title="Please enter numbers only" placeholder="Your phone number" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none" required />
+                <label for="regPhone" class="block text-sm font-medium text-brand-muted mb-1.5">Phone Number</label>
+                <div class="relative">
+                    <i data-lucide="phone" class="w-5 h-5 text-brand-muted/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="regPhone" name="phone_number" type="tel" pattern="[0-9]+" title="Please enter numbers only" placeholder="Your phone number" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm" required />
                 </div>
             </div>
 
             <div>
-                <label for="regPassword" class="text-sm font-semibold text-slate-700">Password</label>
-                <div class="relative mt-1">
-                    <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2"></i>
-                    <input id="regPassword" name="password" type="password" placeholder="Create password" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-300 bg-white/90 focus:border-emerald-500 outline-none" required minlength="6" />
+                <label for="regPassword" class="block text-sm font-medium text-brand-muted mb-1.5">Password</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="w-5 h-5 text-brand-muted/50 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="regPassword" name="password" type="password" placeholder="Create a password" class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-white focus:border-brand-primary focus:ring-2 focus:ring-brand-accent/20 outline-none transition-all text-sm" required minlength="6" />
                 </div>
             </div>
 
-            <div class="pt-2">
-                <button type="submit" class="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-200 text-lg">Register</button>
-            </div>
+            <button type="submit" class="w-full h-12 mt-2 bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-90 text-white font-semibold rounded-xl shadow-md shadow-brand-accent/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                Create Account
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
         </form>
 
-        <div class="mt-6 text-center text-sm pt-4 border-t border-slate-100">
-            <p class="text-slate-600">Already have an account? <a href="{% url 'login_selection' %}" class="text-emerald-600 font-bold hover:underline transition-colors">Login Here</a></p>
+        <div class="mt-6 text-center pt-5 border-t border-slate-100">
+             <p class="text-sm text-brand-muted">Already have an account? <a href="{% url 'login_selection' %}" class="text-brand-primary font-semibold hover:text-brand-accent transition-colors">Log In</a></p>
         </div>
     </div>
 

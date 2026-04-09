@@ -5,463 +5,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - MartGenie</title>
+    <title>Store Dashboard - MartGenie</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f5f7f6', text: '#1a1d1b', muted: '#64756b',
+                            primary: '#006c49', accent: '#10b981',
+                            surface: '#ffffff', highlight: '#eef3f0',
+                            sidebar: '#f0f5f2', card: '#ffffff',
+                            green50: '#ecfdf5', green100: '#d1fae5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #006c49, #10b981);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 108, 73, 0.3);
+        }
+        .sidebar-link:not(.active):hover {
+            background: #e8f0ec;
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+        }
+        .order-row {
+            transition: all 0.2s ease;
+        }
+        .order-row:hover {
+            background: #f5f7f6;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeInUp 0.5s ease forwards; }
+        .fade-up-1 { animation-delay: 0.05s; }
+        .fade-up-2 { animation-delay: 0.1s; }
+        .fade-up-3 { animation-delay: 0.15s; }
+        .fade-up-4 { animation-delay: 0.2s; }
+        .product-item:hover { background: #f5f7f6; }
+    </style>
 </head>
 
-<body class="min-h-screen text-slate-800 relative overflow-x-hidden">
-    <div class="pointer-events-none fixed -top-24 -left-20 w-80 h-80 rounded-full bg-teal-200/35 blur-3xl"></div>
-    <div class="pointer-events-none fixed -bottom-24 -right-20 w-80 h-80 rounded-full bg-blue-200/30 blur-3xl"></div>
+<body class="min-h-screen bg-brand-base text-brand-text font-sans">
 
-    <div class="bg-white/85 backdrop-blur-md border-b border-slate-200 sticky top-0 z-20">
-        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-200">
-                    <i data-lucide="shopping-bag" class="text-white w-5 h-5"></i>
+    <!-- ═══════════════ TOP NAVBAR ═══════════════ -->
+    <nav class="sticky top-0 z-50 bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <span class="text-xl font-extrabold tracking-tight text-brand-text">Mart<span class="text-brand-primary">Genie</span></span>
+
+            <!-- Store Selector -->
+            <form action="" method="get" class="m-0">
+                <input type="hidden" name="filter" value="{{ filter_type }}">
+                {% if filter_type == 'custom' %}
+                <input type="hidden" name="start_date" value="{{ start_date }}">
+                <input type="hidden" name="end_date" value="{{ end_date }}">
+                {% endif %}
+                <div class="relative">
+                    <select name="store" onchange="this.form.submit()" class="appearance-none bg-brand-highlight border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm font-semibold text-brand-text cursor-pointer outline-none focus:border-brand-primary transition-colors">
+                        <option value="all" {% if selected_store == 'all' %}selected{% endif %}>All Stores</option>
+                        {% for s in stores %}
+                        <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-brand-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 </div>
-                <span class="font-extrabold text-xl text-slate-900">Mart<span
-                        class="text-emerald-600">Genie</span></span>
-            </div>
-            <div class="flex items-center gap-3">
-                <!-- Notification Bell -->
-                <div class="relative group">
-                    <button id="notification-btn" onclick="toggleNotifications()"
-                        class="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors relative">
-                        <i data-lucide="bell" class="w-5 h-5"></i>
-                        {% if unread_count > 0 %}
-                        <span id="notif-badge"
-                            class="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
-                        {% endif %}
-                    </button>
-
-                    <!-- Dropdown -->
-                    <div id="notification-dropdown"
-                        class="hidden absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden z-50 transform origin-top-right transition-all">
-                        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                                Notifications
-                                {% if unread_count > 0 %}
-                                <span
-                                    class="bg-rose-100 text-rose-600 text-[10px] px-2 py-0.5 rounded-full font-bold">{{
-                                    unread_count }} New</span>
-                                {% endif %}
-                            </h3>
+            </form>
+        </div>
+        <div class="flex items-center gap-4">
+            <!-- Notification Bell -->
+            <div class="relative">
+                <button id="notification-btn" onclick="toggleNotifications()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-brand-highlight text-brand-muted transition-colors relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    {% if unread_count > 0 %}
+                    <span id="notif-badge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                    {% endif %}
+                </button>
+                <!-- Notification Dropdown -->
+                <div id="notification-dropdown" class="hidden absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <h3 class="font-bold text-brand-text text-sm">Notifications
                             {% if unread_count > 0 %}
-                            <button onclick="markAllNotificationsRead()"
-                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Mark
-                                all read</button>
+                            <span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">{{ unread_count }}</span>
                             {% endif %}
-                        </div>
-
-                        <div class="max-h-80 overflow-y-auto w-full">
-                            {% if unread_notifications %}
-                            <ul class="divide-y divide-slate-100" id="notif-list">
-                                {% for notif in unread_notifications %}
-                                <li
-                                    class="p-4 hover:bg-slate-50 transition-colors cursor-pointer group/item flex gap-3">
-                                    <div
-                                        class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                                        <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-semibold text-slate-800">{{ notif.type_display }}</p>
-                                        <p class="text-xs text-slate-600 mt-0.5">{{ notif.message }}</p>
-                                        <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                                            <i data-lucide="clock" class="w-3 h-3"></i> {{ notif.created_at|timesince }}
-                                            ago
-                                        </p>
-                                    </div>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}
-                            <div class="p-8 text-center" id="empty-notif">
-                                <div
-                                    class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i>
-                                </div>
-                                <p class="text-sm font-medium text-slate-500">You're all caught up!</p>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <a href="{% url 'admin_management' %}"
-                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-sm">
-                    <i data-lucide="settings" class="h-4 w-4"></i>
-                    Management
-                </a>
-                <a href="{% url 'inventory_manager' %}"
-                    class="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors shadow-lg shadow-emerald-200">
-                    <i data-lucide="scan-barcode" class="h-4 w-4"></i>
-                    Inventory Manager
-                </a>
-                <a href="{% url 'logout' %}"
-                    class="bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl px-4 py-2 flex items-center gap-2 font-semibold transition-colors">
-                    <i data-lucide="log-out" class="h-4 w-4"></i>
-                    Logout
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 md:px-6 py-6 relative z-10" id="dashboard-container">
-        <div class="mb-6 fade-in-up">
-            <!-- Dashboard Header & Filters -->
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-                    <p class="text-slate-600 mt-1">
-                        {% if filter_type == 'custom' %}
-                        {{ start_date }} to {{ end_date }}
-                        {% elif filter_type == 'all' %}
-                        All Time
-                        {% else %}
-                        {{ filter_type|title }} ({{ today_date|date:"M j, Y" }})
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap items-center md:justify-end gap-3">
-                    
-                    <!-- Store Selector Dropdown -->
-                    <div class="glass-card p-1.5 rounded-xl shadow-sm">
-                        <form action="" method="get" class="flex items-center m-0">
-                            <input type="hidden" name="filter" value="{{ filter_type }}">
-                            {% if filter_type == 'custom' %}
-                            <input type="hidden" name="start_date" value="{{ start_date }}">
-                            <input type="hidden" name="end_date" value="{{ end_date }}">
-                            {% endif %}
-                            <div class="relative flex items-center">
-                                <i data-lucide="store" class="w-4 h-4 text-emerald-500 absolute left-3"></i>
-                                <select name="store" onchange="this.form.submit()" class="pl-9 pr-8 py-1.5 rounded-lg border-transparent hover:border-slate-200 text-sm focus:outline-none focus:ring-0 bg-transparent font-bold text-slate-800 appearance-none cursor-pointer transition-colors">
-                                    <option value="all" {% if selected_store == 'all' %}selected{% endif %}>All Stores</option>
-                                    {% for s in stores %}
-                                    <option value="{{ s.id }}" {% if selected_store == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2 pointer-events-none"></i>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Quick Date Filters -->
-                    <div class="glass-card p-1.5 rounded-xl shadow-sm flex items-center gap-1 overflow-x-auto hide-scrollbar max-w-full">
-                        <a href="?filter=today&store={{ selected_store }}"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'today' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Today</a>
-                        <a href="?filter=yesterday&store={{ selected_store }}"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'yesterday' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Yesterday</a>
-                        <a href="?filter=week&store={{ selected_store }}"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'week' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Week</a>
-                        <a href="?filter=month&store={{ selected_store }}"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'month' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">Month</a>
-                        <a href="?filter=all&store={{ selected_store }}"
-                            class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap {% if filter_type == 'all' %}bg-emerald-500 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100{% endif %}">All Time</a>
-                    </div>
-
-                    <!-- Custom Date Picker -->
-                    <div class="glass-card p-1.5 rounded-xl shadow-sm">
-                        <form action="" method="get" class="flex items-center gap-2 m-0">
-                            <input type="hidden" name="store" value="{{ selected_store }}">
-                            <input type="hidden" name="filter" value="custom">
-                            <input type="date" name="start_date" value="{{ start_date }}"
-                                class="px-2 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                required>
-                            <span class="text-slate-400">-</span>
-                            <input type="date" name="end_date" value="{{ end_date }}"
-                                class="px-2 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                required>
-                            <button type="submit"
-                                class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
-                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 fade-in-up delay-100">
-            <!-- Revenue -->
-            <div class="glass-card p-5 rounded-2xl border border-emerald-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="text-slate-500 text-sm font-medium">Revenue</p>
-                        <h3 class="text-2xl font-bold text-emerald-700 mt-1">Rs {{ total_revenue|floatformat:2 }}</h3>
-                    </div>
-                    <div class="p-2 bg-emerald-50 rounded-lg">
-                        <i data-lucide="dollar-sign" class="w-5 h-5 text-emerald-700"></i>
-                    </div>
-                </div>
-                <div class="text-xs text-emerald-700 font-medium mt-auto flex items-center gap-1">
-                    <i data-lucide="trending-up" class="w-3 h-3"></i>
-                    {% if filter_type == 'today' %}Today's Sales
-                    {% elif filter_type == 'yesterday' %}Yesterday's Sales
-                    {% elif filter_type == 'week' %}This Week
-                    {% elif filter_type == 'month' %}This Month
-                    {% else %}Total Sales{% endif %}
-                </div>
-            </div>
-
-            <!-- Customers -->
-            <div class="glass-card p-5 rounded-2xl border border-blue-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="text-slate-500 text-sm font-medium">Customers</p>
-                        <h3 class="text-2xl font-bold text-blue-700 mt-1">{{ unique_customers }}</h3>
-                    </div>
-                    <div class="p-2 bg-blue-50 rounded-lg">
-                        <i data-lucide="users" class="w-5 h-5 text-blue-700"></i>
-                    </div>
-                </div>
-                <p class="text-xs text-slate-500 mt-auto">{{ order_count }} orders</p>
-            </div>
-
-            <!-- Items Sold -->
-            <div class="glass-card p-5 rounded-2xl border border-orange-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="text-slate-500 text-sm font-medium">Items Sold</p>
-                        <h3 class="text-2xl font-bold text-orange-700 mt-1">{{ items_sold }}</h3>
-                    </div>
-                    <div class="p-2 bg-orange-50 rounded-lg">
-                        <i data-lucide="shopping-cart" class="w-5 h-5 text-orange-700"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gate Pass -->
-            <div class="glass-card p-5 rounded-2xl border border-amber-100 flex flex-col">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <p class="text-slate-500 text-sm font-medium">Gate Pass</p>
-                        <h3 class="text-2xl font-bold text-amber-700 mt-1">{{ gate_pass_used_count }}/{{ order_count }}
                         </h3>
+                        {% if unread_count > 0 %}
+                        <button onclick="markAllNotificationsRead()" class="text-xs font-semibold text-brand-primary hover:underline">Clear All</button>
+                        {% endif %}
                     </div>
-                    <div class="p-2 bg-amber-50 rounded-lg">
-                        <i data-lucide="check-square" class="w-5 h-5 text-amber-700"></i>
+                    <div class="max-h-[300px] overflow-y-auto">
+                        {% if unread_notifications %}
+                        <ul id="notif-list">
+                            {% for notif in unread_notifications %}
+                            <li class="p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-brand-text">{{ notif.type_display }}</p>
+                                    <p class="text-xs text-brand-muted mt-0.5">{{ notif.message }}</p>
+                                    <p class="text-[10px] text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline -mt-0.5"></i> {{ notif.created_at|timesince }} ago</p>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="p-8 text-center" id="empty-notif">
+                            <i data-lucide="check-circle-2" class="w-8 h-8 text-brand-accent mx-auto mb-2"></i>
+                            <p class="text-sm font-semibold text-brand-text">All Caught Up</p>
+                            <p class="text-xs text-brand-muted">No new alerts.</p>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                <p class="text-xs text-slate-500 mt-auto">Completed exits</p>
+            </div>
+            <a href="{% url 'admin_management' %}" class="text-sm font-semibold text-brand-muted hover:text-brand-text transition-colors">Settings</a>
+            <a href="{% url 'logout' %}" class="text-sm font-semibold text-brand-muted hover:text-red-500 transition-colors">Logout</a>
+            <div class="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center text-white">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
             </div>
         </div>
+    </nav>
 
-        <!-- Tabs -->
-        <div class="space-y-4 fade-in-up delay-200">
-            <div class="glass-card border border-slate-200 p-1 rounded-xl inline-flex mb-4">
-                <button onclick="switchTab('overview')" id="tab-btn-overview"
-                    class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors bg-emerald-500 text-white shadow-sm">Overview</button>
-                <button onclick="switchTab('orders')" id="tab-btn-orders"
-                    class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-slate-700 hover:bg-white/80">Orders</button>
-                <button onclick="switchTab('products')" id="tab-btn-products"
-                    class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg transition-colors text-slate-700 hover:bg-white/80">Products</button>
+    <div class="flex min-h-[calc(100vh-4rem)]">
+
+        <!-- ═══════════════ LEFT SIDEBAR ═══════════════ -->
+        <aside class="w-56 bg-white border-r border-gray-100 p-5 flex flex-col gap-1 shrink-0 hidden lg:flex">
+            <!-- Store Info -->
+            <div class="mb-6 px-2">
+                <h3 class="font-bold text-brand-text text-sm">
+                    {% if current_store %}{{ current_store.name }}{% else %}All Stores{% endif %}
+                </h3>
+                <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-muted mt-0.5">Admin Access</p>
             </div>
 
-            <div id="tab-content-overview" class="tab-content">
-                <div class="grid lg:grid-cols-3 gap-6 fade-in">
-                    <div class="lg:col-span-2 glass-card rounded-2xl border border-slate-100 p-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="font-semibold text-slate-900">Sales Overview</h3>
+            <!-- Nav Links -->
+            <a href="{% url 'dashboard' %}" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+            </a>
+            <a href="{% url 'inventory_manager' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="package" class="w-5 h-5"></i> Inventory
+            </a>
+            <a href="{% url 'sales_ledger' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="trending-up" class="w-5 h-5"></i> Sales
+            </a>
+            <a href="{% url 'customers_crm' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="users" class="w-5 h-5"></i> Customers
+            </a>
+            <a href="{% url 'reports' %}" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-brand-muted">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Reports
+            </a>
+        </aside>
+
+        <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+        <main class="flex-1 p-6 lg:p-8 overflow-y-auto">
+
+            <!-- Page Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 fade-up">
+                <div>
+                    <h1 class="text-2xl font-extrabold text-brand-text tracking-tight">Store Dashboard</h1>
+                    <p class="text-brand-muted text-sm font-medium mt-1">Here is what's happening at your shop {{ filter_label|lower }}.</p>
+                </div>
+                <div class="flex items-center gap-3 mt-4 sm:mt-0">
+                    <!-- Time Filter Pills -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-1 flex items-center gap-0.5 text-xs">
+                        <a href="?filter=today&store={{ selected_store }}" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'today' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Day</a>
+                        <a href="?filter=week&store={{ selected_store }}" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'week' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Week</a>
+                        <a href="?filter=month&store={{ selected_store }}" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'month' %}bg-brand-text text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">Month</a>
+                        <a href="?filter=all&store={{ selected_store }}" class="px-3 py-1.5 rounded-md font-semibold transition-all {% if filter_type == 'all' %}bg-brand-primary text-white{% else %}text-brand-muted hover:bg-gray-100{% endif %}">All</a>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-green50 text-brand-primary text-xs font-bold border border-brand-green100">
+                        <span class="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span> Live Updates
+                    </span>
+                </div>
+            </div>
+
+            <!-- ═══════════════ STAT CARDS ═══════════════ -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                <!-- Revenue Card -->
+                <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 fade-up fade-up-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-brand-muted">{{ filter_label }} Revenue</p>
+                        <div class="w-9 h-9 rounded-xl bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="banknote" class="w-5 h-5 text-brand-primary"></i>
                         </div>
-                        <div class="relative h-64 w-full">
-                            <canvas id="salesChart"></canvas>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-brand-text tracking-tight">Rs {{ display_revenue|floatformat:0 }}</h3>
+                    {% if filter_type == 'today' %}
+                    <p class="text-xs font-semibold mt-1 {% if revenue_change >= 0 %}text-emerald-600{% else %}text-red-500{% endif %}">
+                        {% if revenue_change >= 0 %}+{% endif %}{{ revenue_change }}% from yesterday
+                    </p>
+                    {% else %}
+                    <p class="text-xs font-semibold text-brand-muted mt-1">Net Earnings</p>
+                    {% endif %}
+                </div>
+                <!-- Orders Card -->
+                <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 fade-up fade-up-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-brand-muted">{{ filter_label }} Orders</p>
+                        <div class="w-9 h-9 rounded-xl bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="shopping-cart" class="w-5 h-5 text-brand-primary"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-brand-text tracking-tight">{{ display_orders }}</h3>
+                    {% if today_pending > 0 and filter_type == 'today' %}
+                    <p class="text-xs font-semibold text-amber-600 mt-1">{{ today_pending }} pending</p>
+                    {% else %}
+                    <p class="text-xs font-semibold text-brand-muted mt-1">Completed Purchases</p>
+                    {% endif %}
+                </div>
+
+                <!-- Total Products -->
+                <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 fade-up fade-up-3">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-brand-muted">Total Products</p>
+                        <div class="w-9 h-9 rounded-xl bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="package" class="w-5 h-5 text-brand-primary"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-brand-text tracking-tight">{{ total_products }}</h3>
+                    {% if low_stock_count > 0 %}
+                    <p class="text-xs font-semibold text-red-500 mt-1">{{ low_stock_count }} low in stock</p>
+                    {% else %}
+                    <p class="text-xs font-semibold text-emerald-600 mt-1">Stock healthy</p>
+                    {% endif %}
+                </div>
+
+                <!-- Gate Pass Card -->
+                <div class="stat-card bg-white rounded-2xl p-5 border border-gray-100 fade-up fade-up-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-brand-muted">{{ filter_label }} Exits</p>
+                        <div class="w-9 h-9 rounded-xl bg-brand-green50 flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-brand-primary"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-brand-text tracking-tight">{{ display_gate_passes }}</h3>
+                    <p class="text-xs font-semibold text-brand-primary mt-1">Verified GatePasses</p>
+                </div>
+            </div>
+
+            <!-- ═══════════════ CHART + PRODUCTS ROW ═══════════════ -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8 fade-up">
+                <!-- Sales Chart -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-bold text-brand-text text-lg">{{ chart_title }}</h3>
+                            <p class="text-xs text-brand-muted font-medium">Daily revenue breakdown</p>
+                        </div>
+                        <div class="bg-brand-highlight rounded-lg px-3 py-1.5 text-xs font-semibold text-brand-muted border border-gray-200">
+                            {% if filter_type == 'week' %}Last 7 Days{% elif filter_type == 'today' %}Today{% elif filter_type == 'month' %}This Month{% elif filter_type == 'all' %}All Time{% else %}{{ start_date }} — {{ end_date }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="relative h-[280px] w-full">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Products Sidebar -->
+                <div class="bg-white rounded-2xl border border-gray-100 flex flex-col">
+                    <div class="flex items-center justify-between p-5 pb-3">
+                        <h3 class="font-bold text-brand-text">Products</h3>
+                        <a href="{% url 'inventory_manager' %}" class="text-xs font-semibold text-brand-primary hover:underline">View All</a>
+                    </div>
+                    <div class="flex-1 overflow-y-auto px-3 pb-2" style="max-height: 280px;">
+                        {% for p in products %}
+                        <div class="product-item flex items-center justify-between px-3 py-3 rounded-xl transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-brand-highlight flex items-center justify-center overflow-hidden border border-gray-100 shrink-0">
+                                    {% if p.image %}
+                                    <img src="{{ p.image.url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i data-lucide="box" class="w-5 h-5 text-brand-muted"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-brand-text leading-tight">{{ p.name }}</p>
+                                    <p class="text-[10px] text-brand-muted font-medium">{{ p.barcode }}</p>
+                                </div>
+                            </div>
+                            <span class="text-sm font-bold text-brand-primary whitespace-nowrap">Rs {{ p.price|floatformat:0 }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="p-6 text-center text-brand-muted text-sm">No products yet</div>
+                        {% endfor %}
+                    </div>
+                    <div class="p-3 pt-0">
+                        <a href="{% url 'inventory_manager' %}" class="block w-full text-center bg-brand-primary text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-accent transition-colors">
+                            Add New Product
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════ RECENT ORDERS TABLE ═══════════════ -->
+            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden fade-up">
+                <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100">
+                    <h3 class="font-bold text-brand-text text-lg">Recent Orders</h3>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 text-brand-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+                            <input type="text" id="order-search" placeholder="Search orders..." oninput="filterOrders(this.value)"
+                                class="bg-brand-highlight border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm font-medium text-brand-text outline-none focus:border-brand-primary transition-colors w-48">
                         </div>
                     </div>
                 </div>
 
-                {{ chart_labels|json_script:"chartLabelsData" }}
-                {{ chart_values|json_script:"chartValuesData" }}
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const labelsData = JSON.parse(document.getElementById('chartLabelsData').textContent);
-                        const valuesData = JSON.parse(document.getElementById('chartValuesData').textContent);
-                        const ctx = document.getElementById('salesChart').getContext('2d');
-
-                        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)'); // Emerald-500
-                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: labelsData,
-                                datasets: [{
-                                    label: 'Revenue (Rs)',
-                                    data: valuesData,
-                                    borderColor: '#10b981', // Emerald-500
-                                    backgroundColor: gradient,
-                                    borderWidth: 2,
-                                    pointBackgroundColor: '#fff',
-                                    pointBorderColor: '#10b981',
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    fill: true,
-                                    tension: 0.4
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        display: false
-                                    },
-                                    tooltip: {
-                                        mode: 'index',
-                                        intersect: false,
-                                        callbacks: {
-                                            label: function (context) {
-                                                return 'Rs ' + context.parsed.y.toFixed(2);
-                                            }
-                                        }
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: {
-                                            color: '#f1f5f9'
-                                        },
-                                        ticks: {
-                                            font: {
-                                                size: 10
-                                            }
-                                        }
-                                    },
-                                    x: {
-                                        grid: {
-                                            display: false
-                                        },
-                                        ticks: {
-                                            font: {
-                                                size: 10
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                    });
-                </script>
-            </div>
-
-            <div class="glass-card rounded-2xl border border-slate-100 p-6">
-                <h3 class="font-semibold text-slate-900 mb-4">Quick Stats</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                        <span class="text-slate-600 text-sm">Avg Order Value</span>
-                        <span class="font-bold text-slate-900">Rs {{ avg_order_value }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-8">
-            <h3 class="font-semibold text-slate-900 mb-4">Recent Orders</h3>
-            {% if recent_orders %}
-            <div class="glass-card rounded-2xl border border-slate-200 overflow-hidden">
+                {% if recent_orders %}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-50 border-b border-slate-100">
+                        <thead class="bg-gray-50/80 border-b border-gray-100">
                             <tr>
-                                <th class="p-4 font-semibold text-slate-600">Order ID</th>
-                                <th class="p-4 font-semibold text-slate-600">Customer</th>
-                                <th class="p-4 font-semibold text-slate-600">Items</th>
-                                <th class="p-4 font-semibold text-slate-600">Amount</th>
-                                <th class="p-4 font-semibold text-slate-600">Status</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Order ID</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Customer</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Items</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Amount</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Status</th>
+                                <th class="py-4 px-6 font-semibold text-brand-muted uppercase tracking-wider text-[11px]">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-gray-50" id="orders-body">
                             {% for order in recent_orders %}
-                            <tr class="hover:bg-slate-50/60">
-                                <td class="p-4 font-mono text-xs text-slate-500">#{{ order.order_id }}</td>
-                                <td class="p-4 text-slate-900">{{ order.user.phone_number }}</td>
-                                <td class="p-4 text-slate-500">{{ order.items.count }} items</td>
-                                <td class="p-4 font-bold text-slate-900">Rs {{ order.total_amount }}</td>
-                                <td class="p-4">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold
-                                        {% if order.status == 'COMPLETED' %}bg-emerald-100 text-emerald-700
-                                        {% elif order.status == 'PENDING' %}bg-amber-100 text-amber-700
-                                        {% elif order.status == 'FAILED' %}bg-rose-100 text-rose-700
-                                        {% else %}bg-slate-100 text-slate-700{% endif %}">
+                            <tr class="order-row" data-search="{{ order.user.phone_number }} {{ order.order_id }}">
+                                <td class="py-4 px-6 font-mono text-xs font-bold text-brand-text">#ORD-{{ order.order_id }}</td>
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-full bg-brand-green100 text-brand-primary flex items-center justify-center text-xs font-extrabold shrink-0">
+                                            {% if order.user.first_name %}{{ order.user.first_name|first }}{% else %}{{ order.user.username|first }}{% endif %}
+                                        </div>
+                                        <span class="font-semibold text-brand-text">{% if order.user.first_name %}{{ order.user.first_name }}{% else %}{{ order.user.username }}{% endif %}</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 text-brand-muted font-medium">{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+                                <td class="py-4 px-6 font-bold text-brand-text">Rs {{ order.total_amount|floatformat:0 }}</td>
+                                <td class="py-4 px-6">
+                                    <span class="inline-flex px-3 py-1 rounded-md text-[11px] font-bold
+                                        {% if order.status == 'COMPLETED' %}bg-emerald-50 text-emerald-700
+                                        {% elif order.status == 'PENDING' %}bg-amber-50 text-amber-700
+                                        {% elif order.status == 'FAILED' %}bg-red-50 text-red-700
+                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
                                         {{ order.get_status_display }}
                                     </span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <button class="w-8 h-8 rounded-lg hover:bg-brand-highlight flex items-center justify-center text-brand-muted transition-colors">
+                                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="p-12 text-center text-brand-muted">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                    <p class="font-semibold">No orders found for this period.</p>
+                    <p class="text-xs mt-1">Try changing the time filter above.</p>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <p class="text-slate-500 text-center py-4">No recent orders.</p>
-            {% endif %}
-        </div>
+
+        </main>
     </div>
 
-    <div id="tab-content-orders" class="tab-content hidden">
-        <!-- Full Orders List (Could be paginated, for now same as recent or we pass 'all_orders' context) -->
-        <p class="text-slate-500">View all orders in the Admin Panel or implement full list here.</p>
-    </div>
-
-    <div id="tab-content-products" class="tab-content hidden">
-        <div class="glass-card rounded-2xl border border-slate-200 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 border-b border-slate-100">
-                        <tr>
-                            <th class="p-4 font-semibold text-slate-600">Product Name</th>
-                            <th class="p-4 font-semibold text-slate-600">Barcode</th>
-                            <th class="p-4 font-semibold text-slate-600">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for p in products %}
-                        <tr class="hover:bg-slate-50/60">
-                            <td class="p-4 font-medium text-slate-900">{{ p.name }}</td>
-                            <td class="p-4 text-slate-500 font-mono text-xs">{{ p.barcode }}</td>
-                            <td class="p-4 font-semibold">Rs {{ p.price }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    </div>
-    </div>
+    <!-- Chart Data -->
+    {{ chart_labels|json_script:"chartLabelsData" }}
+    {{ chart_values|json_script:"chartValuesData" }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         lucide.createIcons();
 
-        function switchTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            // Show selected
-            document.getElementById('tab-content-' + tabName).classList.remove('hidden');
+        // ── Chart ──────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+            const labelsData = JSON.parse(document.getElementById('chartLabelsData').textContent);
+            const valuesData = JSON.parse(document.getElementById('chartValuesData').textContent);
+            const ctx = document.getElementById('salesChart').getContext('2d');
 
-            // Update buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-emerald-500', 'text-white', 'shadow-sm');
-                btn.classList.add('text-slate-700', 'hover:bg-white/80');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.15)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labelsData,
+                    datasets: [{
+                        data: valuesData,
+                        backgroundColor: 'rgba(0, 108, 73, 0.75)',
+                        hoverBackgroundColor: '#10b981',
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barThickness: labelsData.length > 14 ? 'flex' : undefined,
+                        maxBarThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1a1d1b',
+                            titleFont: { family: 'Inter', size: 13, weight: '600' },
+                            bodyFont: { family: 'Inter', size: 13 },
+                            padding: 12,
+                            cornerRadius: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) { return 'Rs ' + context.parsed.y.toFixed(0); }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            border: { display: false },
+                            grid: { color: '#f2f4f6', drawTicks: false },
+                            ticks: {
+                                font: { family: 'Inter', weight: '500', size: 11 },
+                                color: '#94a3b8', padding: 8,
+                                callback: function(value) { return 'Rs ' + value; }
+                            }
+                        },
+                        x: {
+                            border: { display: false },
+                            grid: { display: false },
+                            ticks: {
+                                font: { family: 'Inter', weight: '600', size: 11 },
+                                color: '#64756b', padding: 8
+                            }
+                        }
+                    }
+                }
             });
-            const activeBtn = document.getElementById('tab-btn-' + tabName);
-            activeBtn.classList.remove('text-slate-700', 'hover:bg-white/80');
-            activeBtn.classList.add('bg-emerald-500', 'text-white', 'shadow-sm');
-        }
+        });
 
-        // Notification Behaviors
+        // ── Notifications ──────────────────────────────────────
         function toggleNotifications() {
-            const dropdown = document.getElementById('notification-dropdown');
-            dropdown.classList.toggle('hidden');
+            document.getElementById('notification-dropdown').classList.toggle('hidden');
         }
-
-        // Close dropdown when clicking outside
         document.addEventListener('click', function (event) {
             const dropdown = document.getElementById('notification-dropdown');
             const btn = document.getElementById('notification-btn');
@@ -473,42 +478,35 @@
         async function markAllNotificationsRead() {
             try {
                 const response = await fetch("{% url 'mark_notifications_read' %}", {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-
                 if (response.ok) {
-                    // Update UI optimistically
                     const badge = document.getElementById('notif-badge');
                     if (badge) badge.remove();
-
                     const notifList = document.getElementById('notif-list');
                     if (notifList) {
                         notifList.outerHTML = `
                             <div class="p-8 text-center" id="empty-notif">
-                                <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <i data-lucide="check-circle" class="w-6 h-6 text-slate-300"></i>
-                                </div>
-                                <p class="text-sm font-medium text-slate-500">You're all caught up!</p>
+                                <i data-lucide="check-circle-2" class="w-8 h-8 text-brand-accent mx-auto mb-2"></i>
+                                <p class="text-sm font-semibold text-brand-text">All Caught Up</p>
+                                <p class="text-xs text-brand-muted">No new alerts.</p>
                             </div>
                         `;
                     }
-
-                    // Remove the headers containing count and mark read btn
-                    const headerBadges = document.querySelectorAll('#notification-dropdown .bg-rose-100');
-                    headerBadges.forEach(el => el.remove());
-                    const markBtn = document.querySelector('#notification-dropdown button.text-emerald-600');
-                    if (markBtn) markBtn.remove();
-
                     lucide.createIcons();
                 }
-            } catch (error) {
-                console.error("Failed to mark notifications read:", error);
-            }
+            } catch (error) { console.error("Failed:", error); }
+        }
+
+        // ── Order Search ───────────────────────────────────────
+        function filterOrders(query) {
+            const rows = document.querySelectorAll('.order-row');
+            const q = query.toLowerCase();
+            rows.forEach(row => {
+                const text = row.getAttribute('data-search').toLowerCase();
+                row.style.display = text.includes(q) ? '' : 'none';
+            });
         }
     </script>
 </body>
-
 </html>

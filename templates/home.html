@@ -5,154 +5,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MartGenie - Smart Retail Solution</title>
+    <title>MartGenie - Smart Checkout</title>
+    <!-- Use Inter font as per Stitch design -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#f7f9fb', text: '#191c1e', muted: '#3c4a42',
+                            primary: '#006c49', accent: '#10b981', glass: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
-<body class="min-h-screen text-slate-800 relative overflow-x-hidden">
-    <div class="pointer-events-none absolute -top-16 -left-16 w-72 h-72 rounded-full bg-teal-200/40 blur-3xl"></div>
-    <div class="pointer-events-none absolute top-24 -right-24 w-80 h-80 rounded-full bg-blue-200/40 blur-3xl"></div>
-    <div class="pointer-events-none absolute -bottom-20 left-1/3 w-72 h-72 rounded-full bg-orange-200/30 blur-3xl">
-    </div>
+<body class="min-h-screen text-brand-text bg-brand-base font-sans overflow-x-hidden relative selection:bg-brand-accent selection:text-white">
 
-    <div class="max-w-5xl mx-auto px-4 py-10 md:py-16 relative z-10">
-        <div class="text-center mb-10 md:mb-14 fade-in-up">
-            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full glass-card mb-6">
-                <div
-                    class="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-md">
-                    <i data-lucide="zap" class="w-5 h-5 text-white" stroke-width="2"></i>
-                </div>
-                <p class="text-xs font-semibold uppercase tracking-widest text-slate-600">Smart Checkout Experience</p>
+    <!-- Ethereal Background Gradients -->
+    <div class="fixed top-[-10%] left-[-5%] w-[50rem] h-[50rem] rounded-full bg-[#10b981]/15 blur-[120px] pointer-events-none -z-10 animate-pulse"></div>
+    <div class="fixed top-[40%] right-[-10%] w-[40rem] h-[40rem] rounded-full bg-[#0D9488]/15 blur-[120px] pointer-events-none -z-10 animate-pulse"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-6xl h-20 rounded-[2rem] bg-white/70 backdrop-blur-2xl border border-white flex items-center justify-between px-8 z-50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center shadow-lg shadow-brand-accent/30">
+                <i data-lucide="sparkles" class="text-white w-6 h-6"></i>
             </div>
+            <span class="text-2xl font-bold tracking-tight text-brand-text">Mart<span class="text-brand-primary">Genie</span></span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-brand-muted font-medium">
+            <a href="#how-it-works" class="hover:text-brand-primary transition-colors">How it Works</a>
+        </div>
+    </nav>
 
-            <div class="flex flex-col items-center gap-3 mb-6">
-                <div class="relative group cursor-default">
-                    <div
-                        class="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-200 transition-transform duration-300 group-hover:scale-105">
-                        <i data-lucide="shopping-bag" class="text-white w-12 h-12" stroke-width="1.8"></i>
-                    </div>
-                    <div class="absolute -top-1 -right-1 bg-amber-400 rounded-full p-1.5 animate-float">
-                        <i data-lucide="sparkles" class="text-amber-700 w-4 h-4"></i>
-                    </div>
-                </div>
-                <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-                    Mart<span class="text-emerald-600">Genie</span>
-                </h1>
-                <p class="text-sm uppercase tracking-[0.25em] text-slate-500 font-semibold">Scan, Pay and Walk Out</p>
-            </div>
-
-            <p class="text-slate-600 text-base md:text-lg max-w-2xl mx-auto fade-in delay-200 leading-relaxed">
-                Built for modern retail stores with faster checkout, secure gate verification, and real-time operations.
-            </p>
+    <!-- Hero Section -->
+    <main class="pt-40 max-w-7xl mx-auto px-6 relative z-10 flex flex-col items-center text-center">
+        
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f2f4f6] text-brand-primary font-bold text-sm mb-8 tracking-wide border border-transparent hover:border-brand-accent/30 transition-colors">
+            <span class="w-2 h-2 rounded-full bg-brand-accent animate-ping"></span> Live in 5+ Stores
         </div>
 
-        <div class="grid md:grid-cols-3 gap-5 md:gap-6">
-            <div class="fade-in-up delay-200">
-                <a href="{% url 'customer_login' %}" class="block h-full">
-                    <div
-                        class="h-full p-6 rounded-3xl border-2 border-emerald-200/70 bg-emerald-50/80 glass-card portal-card">
-                        <div
-                            class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-emerald-500 shadow-lg shadow-emerald-200">
-                            <i data-lucide="smartphone" class="w-7 h-7 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Customer App</h3>
-                        <p class="text-slate-600 text-sm mb-5">Scan products, pay digitally, and collect an instant QR
-                            exit pass.</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold tracking-wide text-emerald-700 uppercase">Mobile
-                                Flow</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5 text-emerald-700"></i>
-                        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-brand-text mb-6 max-w-4xl leading-tight">
+            Checkout is the past. <br/>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-teal-500">
+                Walk out is the future.
+            </span>
+        </h1>
+        
+        <p class="text-xl md:text-2xl text-brand-muted mt-2 max-w-2xl leading-relaxed mb-12">
+            The intelligent retail platform that removes friction, ends queues, and elevates the shopping experience.
+        </p>
+
+        <!-- Portals Grid -->
+        <div id="portals" class="w-full max-w-6xl mt-12 mb-24 relative">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+                
+                <!-- Customer Portal -->
+                <a href="{% url 'customer_login' %}" 
+                   class="group relative h-96 rounded-[3rem] bg-white/60 backdrop-blur-xl border border-white p-8 flex flex-col justify-between hover:shadow-[0_20px_50px_rgba(16,185,129,0.15)] hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                        <i data-lucide="shopping-bag" class="text-emerald-600 w-10 h-10"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full mb-4 tracking-widest uppercase">Portal</div>
+                        <h2 class="text-2xl font-bold text-brand-text mb-2">Customer App</h2>
+                        <p class="text-brand-muted leading-relaxed font-medium text-sm">Scan anywhere, pay instantly, and walk out. Your personal shopping assistant.</p>
+                    </div>
+                    <div class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-brand-text flex items-center justify-center shadow-lg text-white group-hover:translate-x-2 transition-transform">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
                     </div>
                 </a>
-            </div>
 
-            <div class="fade-in-up delay-300">
-                <a href="{% url 'security_login' %}" class="block h-full">
-                    <div
-                        class="h-full p-6 rounded-3xl border-2 border-blue-200/70 bg-blue-50/80 glass-card portal-card">
-                        <div
-                            class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-blue-500 shadow-lg shadow-blue-200">
-                            <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Security Guard</h3>
-                        <p class="text-slate-600 text-sm mb-5">Verify customer QR passes at the gate and prevent unpaid
-                            exits.</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold tracking-wide text-blue-700 uppercase">Gate
-                                Control</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5 text-blue-700"></i>
-                        </div>
+                <!-- Security Portal -->
+                <a href="{% url 'security_login' %}" 
+                   class="group relative h-96 rounded-[3rem] bg-white/60 backdrop-blur-xl border border-white p-8 flex flex-col justify-between hover:shadow-[0_20px_50px_rgba(59,130,246,0.15)] hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                        <i data-lucide="shield-check" class="text-blue-600 w-10 h-10"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full mb-4 tracking-widest uppercase">Portal</div>
+                        <h2 class="text-2xl font-bold text-brand-text mb-2">Security Guard</h2>
+                        <p class="text-brand-muted leading-relaxed font-medium text-sm">Scan and verify customer exit passes quickly and securely.</p>
+                    </div>
+                    <div class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-brand-text flex items-center justify-center shadow-lg text-white group-hover:translate-x-2 transition-transform">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
                     </div>
                 </a>
-            </div>
 
-            <div class="fade-in-up delay-400">
-                <a href="{% url 'login_selection' %}" class="block h-full">
-                    <div
-                        class="h-full p-6 rounded-3xl border-2 border-orange-200/70 bg-orange-50/80 glass-card portal-card">
-                        <div
-                            class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-orange-500 shadow-lg shadow-orange-200">
-                            <i data-lucide="layout-dashboard" class="w-7 h-7 text-white"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Admin Dashboard</h3>
-                        <p class="text-slate-600 text-sm mb-5">Track orders, monitor sales, and manage inventory in one
-                            place.</p>
-                        <div class="flex items-center justify-between">
-                            <span
-                                class="text-xs font-semibold tracking-wide text-orange-700 uppercase">Operations</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5 text-orange-700"></i>
-                        </div>
+                <!-- Admin Portal -->
+                <a href="{% url 'login_selection' %}" 
+                   class="group relative h-96 rounded-[3rem] bg-white/60 backdrop-blur-xl border border-white p-8 flex flex-col justify-between hover:shadow-[0_20px_50px_rgba(249,115,22,0.15)] hover:-translate-y-2 transition-all duration-300">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                        <i data-lucide="layout-dashboard" class="text-orange-600 w-10 h-10"></i>
+                    </div>
+                    <div class="text-left">
+                        <div class="inline-block px-3 py-1 bg-orange-100 text-orange-800 text-xs font-bold rounded-full mb-4 tracking-widest uppercase">Portal</div>
+                        <h2 class="text-2xl font-bold text-brand-text mb-2">Management</h2>
+                        <p class="text-brand-muted leading-relaxed font-medium text-sm">Manage inventory, track sales, and control your stores from one place.</p>
+                    </div>
+                    <div class="absolute bottom-8 right-8 w-12 h-12 rounded-full bg-brand-text flex items-center justify-center shadow-lg text-white group-hover:translate-x-2 transition-transform">
+                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
                     </div>
                 </a>
+
             </div>
         </div>
 
-        <div class="mt-12 md:mt-16 p-6 md:p-8 rounded-3xl glass-card fade-in delay-500">
-            <h2 class="text-xl md:text-2xl font-bold text-slate-900 text-center mb-8">How It Works</h2>
-            <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="text-center p-4 rounded-2xl bg-white/70 border border-slate-200/70 fade-in-up delay-600">
-                    <div
-                        class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center mx-auto mb-3">
-                        1</div>
-                    <h3 class="font-semibold text-slate-900 mb-1">Enter Store</h3>
-                    <p class="text-slate-600 text-sm">Login with mobile number</p>
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-24 w-full text-left">
+            <h3 class="text-4xl font-bold text-brand-text text-center tracking-tight mb-16">How It Works</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto px-6">
+                <!-- Step 1 -->
+                <div class="rounded-[2.5rem] bg-[#f2f4f6]/80 backdrop-blur-md p-8 relative overflow-hidden group">
+                    <div class="text-8xl font-black text-brand-primary/5 absolute -right-2 -bottom-4 mix-blend-multiply group-hover:scale-110 transition-transform">1</div>
+                    <div class="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
+                        <i data-lucide="qr-code" class="w-6 h-6 text-brand-primary"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-text mb-2">Scan & Enter</h4>
+                    <p class="text-brand-muted text-sm">Point your phone at the store QR code to start shopping.</p>
                 </div>
-                <div class="text-center p-4 rounded-2xl bg-white/70 border border-slate-200/70 fade-in-up delay-600"
-                    style="animation-delay: 700ms;">
-                    <div
-                        class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center mx-auto mb-3">
-                        2</div>
-                    <h3 class="font-semibold text-slate-900 mb-1">Scan Items</h3>
-                    <p class="text-slate-600 text-sm">Use camera to add products</p>
+                <!-- Step 2 -->
+                <div class="rounded-[2.5rem] bg-[#f2f4f6]/80 backdrop-blur-md p-8 relative overflow-hidden group">
+                    <div class="text-8xl font-black text-brand-primary/5 absolute -right-2 -bottom-4 mix-blend-multiply group-hover:scale-110 transition-transform">2</div>
+                    <div class="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
+                        <i data-lucide="barcode" class="w-6 h-6 text-brand-primary"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-text mb-2">Scan Barcodes</h4>
+                    <p class="text-brand-muted text-sm">Add items directly to your digital cart by scanning product barcodes.</p>
                 </div>
-                <div class="text-center p-4 rounded-2xl bg-white/70 border border-slate-200/70 fade-in-up delay-600"
-                    style="animation-delay: 800ms;">
-                    <div
-                        class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center mx-auto mb-3">
-                        3</div>
-                    <h3 class="font-semibold text-slate-900 mb-1">Pay Securely</h3>
-                    <p class="text-slate-600 text-sm">UPI, wallet, or card</p>
+                <!-- Step 3 -->
+                <div class="rounded-[2.5rem] bg-[#f2f4f6]/80 backdrop-blur-md p-8 relative overflow-hidden group">
+                    <div class="text-8xl font-black text-brand-primary/5 absolute -right-2 -bottom-4 mix-blend-multiply group-hover:scale-110 transition-transform">3</div>
+                    <div class="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
+                        <i data-lucide="credit-card" class="w-6 h-6 text-brand-primary"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-text mb-2">Pay Anywhere</h4>
+                    <p class="text-brand-muted text-sm">Complete your purchase using UPI, card, or wallet right from the aisle.</p>
                 </div>
-                <div class="text-center p-4 rounded-2xl bg-white/70 border border-slate-200/70 fade-in-up delay-600"
-                    style="animation-delay: 900ms;">
-                    <div
-                        class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center mx-auto mb-3">
-                        4</div>
-                    <h3 class="font-semibold text-slate-900 mb-1">Exit Fast</h3>
-                    <p class="text-slate-600 text-sm">Show QR at gate scanner</p>
+                <!-- Step 4 -->
+                <div class="rounded-[2.5rem] bg-[#f2f4f6]/80 backdrop-blur-md p-8 relative overflow-hidden group border border-brand-accent/20">
+                    <div class="text-8xl font-black text-brand-primary/10 absolute -right-2 -bottom-4 mix-blend-multiply group-hover:scale-110 transition-transform">4</div>
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-brand-primary to-brand-accent shadow-md flex items-center justify-center mb-6 text-white text-xl font-bold">
+                        <i data-lucide="door-open" class="w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-brand-text mb-2">Walk Out</h4>
+                    <p class="text-brand-muted text-sm">Show your digital Exit Pass to security and leave without friction.</p>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <footer class="border-t border-slate-200/70 py-5 mt-6 relative z-10">
-        <div class="max-w-5xl mx-auto px-4 text-center">
-            <p class="text-slate-500 text-sm">Built for efficient, queue-free retail experiences.</p>
-        </div>
-    </footer>
+        <!-- Footer -->
+        <footer class="w-full text-center py-10 mt-auto border-t border-brand-accent/10">
+            <p class="text-brand-muted font-medium text-sm">&copy; 2026 MartGenie. Smart checkout for modern retail.</p>
+        </footer>
+
+    </main>
 
     <script>
         lucide.createIcons();
