@@ -42,9 +42,7 @@
         <!-- Header -->
         <header class="flex items-center justify-between mb-10 bg-white/60 backdrop-blur-2xl p-6 rounded-[2rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] fade-in-up">
             <h1 class="text-2xl font-extrabold text-brand-text flex items-center gap-4 tracking-tight">
-                <div class="w-12 h-12 bg-gradient-to-br from-brand-primary to-brand-accent rounded-[1rem] flex items-center justify-center text-white shadow-lg shadow-brand-accent/30">
-                    <i data-lucide="packages" class="w-6 h-6"></i>
-                </div>
+                <img src="{% static 'images/logo.png' %}" alt="MartGenie Logo" class="h-14 w-auto object-contain">
                 Inventory
             </h1>
             <a href="{% url 'dashboard' %}"
