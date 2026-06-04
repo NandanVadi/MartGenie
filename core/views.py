@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count, F
+from django.db.models import Sum, Count, F, Q
+from .models import Store
 from django.utils import timezone
 import datetime
 from django.http import JsonResponse
@@ -11,7 +12,7 @@ def home(request):
     """
     Renders the landing page for the MartGenie application.
     """
-    return render(request, 'Home.html')
+    return render(request, 'home.html')
 
 @login_required
 def cart_view(request):
@@ -288,7 +289,7 @@ def mark_notifications_read(request):
 @login_required
 def sales_ledger(request):
     if request.user.role != 'ADMIN':
-        return render(request, 'Home.html', {'error': 'Unauthorized'})
+        return render(request, 'home.html', {'error': 'Unauthorized'})
     from billing.models import Order
     
     # Session Persistence
@@ -311,7 +312,7 @@ def sales_ledger(request):
 @login_required
 def customers_crm(request):
     if request.user.role != 'ADMIN':
-        return render(request, 'Home.html', {'error': 'Unauthorized'})
+        return render(request, 'home.html', {'error': 'Unauthorized'})
     from accounts.models import CustomUser
     
     # Session Persistence

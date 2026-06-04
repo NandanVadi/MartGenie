@@ -9,12 +9,13 @@ from billing.models import OrderItem, Order
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta, datetime
+from core.models import Store
 
 @login_required
 def reports_dashboard(request):
     # Enforce admin access
     if request.user.role != 'ADMIN':
-        return render(request, 'Home.html', {'error': 'Unauthorized'})
+        return render(request, 'home.html', {'error': 'Unauthorized'})
 
     # Filtering Logic (Same as main dashboard)
     today = timezone.localtime(timezone.now()).date()
