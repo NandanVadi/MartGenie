@@ -26,7 +26,12 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'False'
+DEBUG = os.environ.get('DEBUG', 'True').strip().lower() in {
+    'true',
+    '1',
+    'yes',
+    'on',
+}
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -102,7 +107,7 @@ DATABASES = {
         conn_max_age=0,
     )
 }
-DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+
 
 
 # Password validation
@@ -144,7 +149,14 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # WhiteNoise configuration
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Production Security Settings
 if not DEBUG:
